@@ -1,5 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { account } from '../lib/appwrite';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+    createUserWithEmailAndPassword,
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    signInWithEmailAndPassword,
+    signInWithPopup,
+    signOut,
+    updateProfile,
+} from 'firebase/auth';
+import { auth, googleProvider } from '../lib/firebase';
+import { getMyProfile, upsertMyProfile } from '../api/Profile';
 
 const AuthContext = createContext();
 
@@ -14,29 +24,89 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [claims, setClaims] = useState({});
+    const [profile, setProfile] = useState(null);
+    const [profileLoading, setProfileLoading] = useState(true);
+
+    const loadProfile = async (firebaseUser = auth.currentUser) => {
+        if (!firebaseUser) {
+            setProfile(null);
+            setProfileLoading(false);
+            return null;
+        }
+
+        try {
+            setProfileLoading(true);
+            const token = await firebaseUser.getIdToken();
+            const data = await getMyProfile(token);
+            setProfile(data);
+            return data;
+        } catch (error) {
+            if (error.response?.status === 404) {
+                setProfile(null);
+                return null;
+            }
+            console.error('Failed to load profile:', error);
+            throw error;
+        } finally {
+            setProfileLoading(false);
+        }
+    };
 
     useEffect(() => {
-        checkUser();
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (!firebaseUser) {
+                setUser(null);
+                setClaims({});
+                setProfile(null);
+                setProfileLoading(false);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const tokenResult = await firebaseUser.getIdTokenResult();
+                setClaims(tokenResult.claims || {});
+                setUser({
+                    ...firebaseUser,
+                    $id: firebaseUser.uid,
+                    name: firebaseUser.displayName,
+                    email: firebaseUser.email,
+                });
+                await loadProfile(firebaseUser);
+            } catch (error) {
+                console.error('Failed to restore auth state:', error);
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        return unsubscribe;
     }, []);
 
     const checkUser = async () => {
-        try {
-            const session = await account.get();
-            setUser(session);
-        } catch (error) {
-            console.log('No active session');
-            setUser(null);
-        } finally {
-            setLoading(false);
-        }
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) return null;
+
+        const tokenResult = await firebaseUser.getIdTokenResult(true);
+        setClaims(tokenResult.claims || {});
+        const normalizedUser = {
+            ...firebaseUser,
+            $id: firebaseUser.uid,
+            name: firebaseUser.displayName,
+            email: firebaseUser.email,
+        };
+        setUser(normalizedUser);
+        await loadProfile(firebaseUser);
+        return normalizedUser;
     };
 
 
     const login = async (email, password) => {
         try {
-            await account.createEmailPasswordSession(email, password);
-            await checkUser();
-            return { success: true };
+            await signInWithEmailAndPassword(auth, email, password);
+            const normalizedUser = await checkUser();
+            return { success: true, user: normalizedUser, profile };
         } catch (error) {
             console.error('Login failed:', error);
             return { success: false, error: error.message };
@@ -45,19 +115,39 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (email, password, name) => {
         try {
-            await account.create('unique()', email, password, name);
-            await login(email, password);
-            return { success: true };
+            const credential = await createUserWithEmailAndPassword(auth, email, password);
+            if (name) {
+                await updateProfile(credential.user, { displayName: name });
+            }
+            const normalizedUser = await checkUser();
+            return { success: true, user: normalizedUser };
         } catch (error) {
             console.error('Registration failed:', error);
             return { success: false, error: error.message };
         }
     };
 
+    const loginWithGoogle = async () => {
+        try {
+            const credential = await signInWithPopup(auth, googleProvider);
+            const userName = credential.user.displayName;
+            if (!userName && credential.user.email) {
+                const fallbackName = credential.user.email.split('@')[0];
+                await updateProfile(credential.user, { displayName: fallbackName });
+            }
+            const normalizedUser = await checkUser();
+            return { success: true, provider: GoogleAuthProvider.PROVIDER_ID, user: normalizedUser, profile };
+        } catch (error) {
+            console.error('Google sign-in failed:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
     const logout = async () => {
         try {
-            await account.deleteSession('current');
+            await signOut(auth);
             setUser(null);
+            setProfile(null);
             return { success: true };
         } catch (error) {
             console.error('Logout failed:', error);
@@ -67,8 +157,7 @@ export const AuthProvider = ({ children }) => {
 
     const getToken = async () => {
         try {
-            const session = await account.getSession('current');
-            return session.$id; // Return session ID as token
+            return await auth.currentUser?.getIdToken();
         } catch (error) {
             console.error('Failed to get token:', error);
             return null;
@@ -77,24 +166,66 @@ export const AuthProvider = ({ children }) => {
 
     const isAdmin = () => {
         try {
-            return user && user.labels && user.labels.includes('admin');
+            const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
+                .split(',')
+                .map((email) => email.trim().toLowerCase())
+                .filter(Boolean);
+
+            return Boolean(
+                claims.admin ||
+                claims.role === 'admin' ||
+                (user?.email && adminEmails.includes(user.email.toLowerCase()))
+            );
         } catch (error) {
             console.error('Failed to check admin status:', error);
             return false;
         }
     }
 
-    const value = {
+    const isMunicipal = () => {
+        return Boolean(
+            claims.admin ||
+            claims.role === 'admin' ||
+            profile?.portalType === 'municipality'
+        );
+    };
+
+    const saveProfile = async (payload) => {
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            if (!token) {
+                return { success: false, error: 'Authentication token unavailable' };
+            }
+
+            const savedProfile = await upsertMyProfile(payload, token);
+            setProfile(savedProfile);
+            return { success: true, profile: savedProfile };
+        } catch (error) {
+            console.error('Failed to save profile:', error);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Failed to save profile',
+            };
+        }
+    };
+
+    const value = useMemo(() => ({
         user,
         loading,
+        profile,
+        profileLoading,
         login,
         register,
+        loginWithGoogle,
         logout,
         getToken,
         isSignedIn: !!user,
         checkUser,
-        isAdmin
-    };
+        isAdmin,
+        isMunicipal,
+        saveProfile,
+        refreshProfile: loadProfile,
+    }), [user, loading, claims, profile, profileLoading]);
 
     return (
         <AuthContext.Provider value={value}>

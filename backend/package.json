@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "seed:issues": "node scripts/seedIssues.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,8 +18,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-fileupload": "^1.5.2",
+    "firebase-admin": "^13.10.0",
     "mongoose": "^8.19.1",
-    "node-appwrite": "^20.2.1",
     "nodemon": "^3.1.10"
   },
   "type": "commonjs"

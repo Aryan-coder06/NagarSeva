@@ -1,4 +1,38 @@
-const { users } = require('../lib/appwrite');
+const admin = require('../lib/firebaseAdmin');
+const UserProfile = require('../models/UserProfile');
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isTransientNetworkError = (error) => {
+    const message = error?.message || '';
+    return (
+        message.includes('EAI_AGAIN') ||
+        message.includes('ENOTFOUND') ||
+        message.includes('ECONNRESET') ||
+        message.includes('ETIMEDOUT')
+    );
+};
+
+const verifyIdTokenWithRetry = async (idToken, maxAttempts = 2) => {
+    let lastError;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            return await admin.auth().verifyIdToken(idToken);
+        } catch (error) {
+            lastError = error;
+
+            if (!isTransientNetworkError(error) || attempt === maxAttempts) {
+                throw error;
+            }
+
+            console.warn(`Transient Firebase auth verification failure on attempt ${attempt}/${maxAttempts}: ${error.message}`);
+            await sleep(300 * attempt);
+        }
+    }
+
+    throw lastError;
+};
 
 const requireAuth = () => {
     return async (req, res, next) => {
@@ -9,40 +43,62 @@ const requireAuth = () => {
                 return res.status(401).json({ error: 'No token provided' });
             }
 
-            const sessionId = authHeader.substring(7); // Remove 'Bearer ' prefix
-            
-            // For Appwrite, we need to verify the session differently
-            // Since we're using session ID as token, we need to validate it
-            // This is a simplified approach - in production, you might want to use JWT
-            
-            if (!sessionId) {
+            const idToken = authHeader.substring(7);
+
+            if (!idToken) {
                 return res.status(401).json({ error: 'Invalid token' });
             }
 
-            // Store session info in request
+            const decodedToken = await verifyIdTokenWithRetry(idToken);
+
             req.auth = {
-                sessionId: sessionId,
-                // We'll need to get user info from the session
-                // For now, we'll extract user ID from the session in the controller
+                uid: decodedToken.uid,
+                email: decodedToken.email,
+                name: decodedToken.name,
+                admin: decodedToken.admin === true || decodedToken.role === 'admin',
+                claims: decodedToken,
             };
 
             next();
         } catch (error) {
             console.error('Auth middleware error:', error);
+
+            if (isTransientNetworkError(error)) {
+                return res.status(503).json({
+                    error: 'Authentication service temporarily unavailable. Please retry.',
+                });
+            }
+
             return res.status(401).json({ error: 'Authentication failed' });
         }
     };
 };
 
-// Helper function to get user from session
-const getUserFromSession = async (sessionId) => {
-    try {
-        // In a real implementation, you'd verify the session with Appwrite
-        // For now, we'll use a simplified approach
-        return { userId: sessionId }; // Placeholder
-    } catch (error) {
-        throw new Error('Invalid session');
-    }
+const requireAdmin = () => {
+    return (req, res, next) => {
+        if (req.auth?.admin) return next();
+        return res.status(403).json({ error: 'Admin access required' });
+    };
 };
 
-module.exports = { requireAuth, getUserFromSession };
+const requireMunicipal = () => {
+    return async (req, res, next) => {
+        try {
+            if (req.auth?.admin) return next();
+
+            const profile = await UserProfile.findOne({ firebaseUid: req.auth?.uid }).lean();
+
+            if (profile?.portalType === 'municipality') {
+                req.profile = profile;
+                return next();
+            }
+
+            return res.status(403).json({ error: 'Municipal access required' });
+        } catch (error) {
+            console.error('Municipal access middleware error:', error);
+            return res.status(500).json({ error: 'Unable to verify municipal access' });
+        }
+    };
+};
+
+module.exports = { requireAuth, requireAdmin, requireMunicipal };

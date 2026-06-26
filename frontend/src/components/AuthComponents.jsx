@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
@@ -17,10 +18,19 @@ export const SignedOut = ({ children }) => {
 // SignInButton component - shows a button that opens auth modal
 export const SignInButton = ({ children, mode = 'modal' }) => {
     const [showModal, setShowModal] = useState(false);
+    const navigate = useNavigate();
+
+    const handleClick = () => {
+        if (mode === 'page') {
+            navigate('/citizen/login');
+            return;
+        }
+        setShowModal(true);
+    };
 
     return (
         <>
-            <button className='cursor-pointer' onClick={() => setShowModal(true)}>
+            <button className='cursor-pointer' onClick={handleClick}>
                 {children || 'Sign In'}
             </button>
             {mode === 'modal' && (
@@ -83,7 +93,7 @@ export const SignOutButton = ({ children, style, className = '' }) => {
         <button
             onClick={logout}
             style={style}
-            className={`text-zinc-800 hover:opacity-70 cursor-pointer ${className}`}
+            className={`cursor-pointer hover:opacity-80 ${className}`}
         >
             {children || 'Sign Out'}
         </button>

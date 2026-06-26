@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/AuthContext';
 
 const AuthModal = ({ isOpen, onClose, mode = 'login' }) => {
@@ -9,7 +11,8 @@ const AuthModal = ({ isOpen, onClose, mode = 'login' }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { login, register } = useAuth();
+    const navigate = useNavigate();
+    const { login, register, loginWithGoogle } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,13 +42,25 @@ const AuthModal = ({ isOpen, onClose, mode = 'login' }) => {
         }
     };
 
+    const handleGoogle = async () => {
+        setLoading(true);
+        setError('');
+        const result = await loginWithGoogle();
+        setLoading(false);
+        if (result.success) {
+            onClose();
+            return;
+        }
+        setError(result.error || 'Google sign-in failed');
+    };
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-[#000002c7] backdrop-blur-xs flex items-center justify-center z-50">
-            <div className="bg-white text-zinc-800 text-left p-6 rounded-lg w-96 max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/70 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-green-200 bg-white/90 p-6 text-left text-zinc-800 shadow-2xl backdrop-blur-md">
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl text-zinc-600 font-bold">
+                    <h2 className="text-xl text-zinc-800 font-bold">
                         {currentMode === 'login' ? 'Sign In' : 'Sign Up'}
                     </h2>
                     <button
@@ -107,11 +122,27 @@ const AuthModal = ({ isOpen, onClose, mode = 'login' }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-yellowOrange cursor-pointer text-white py-2 px-4 rounded-md hover:bg-amber-300"
+                        className="w-full rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3 text-white transition hover:from-green-600 hover:to-emerald-700 disabled:opacity-60"
                     >
                         {loading ? 'Loading...' : (currentMode === 'login' ? 'Sign In' : 'Sign Up')}
                     </button>
                 </form>
+
+                <div className="my-5 flex items-center gap-3 text-sm text-zinc-500">
+                    <div className="h-px flex-1 bg-zinc-200" />
+                    <span>or</span>
+                    <div className="h-px flex-1 bg-zinc-200" />
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleGoogle}
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-3 rounded-xl border border-green-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-800 transition hover:bg-green-50 disabled:opacity-60"
+                >
+                    <FcGoogle className="h-5 w-5" />
+                    Continue with Google
+                </button>
 
                 <div className="mt-4 text-center">
                     <button
@@ -122,6 +153,19 @@ const AuthModal = ({ isOpen, onClose, mode = 'login' }) => {
                             ? "Don't have an account? Sign up" 
                             : "Already have an account? Sign in"
                         }
+                    </button>
+                </div>
+
+                <div className="mt-4 text-center">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            onClose();
+                            navigate(currentMode === 'login' ? '/citizen/login' : '/citizen/signup');
+                        }}
+                        className="text-xs text-zinc-500 hover:text-zinc-700"
+                    >
+                        Open full page instead
                     </button>
                 </div>
             </div>

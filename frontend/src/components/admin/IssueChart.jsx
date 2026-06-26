@@ -46,28 +46,28 @@ const IssueChart = ({ issues }) => {
           label: 'Issues by Category',
           data: counts,
           backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            '#FF6384',
-            '#C9CBCF',
-            '#4BC0C0',
-            '#FF6384'
+            '#059669', // Emerald
+            '#0d9488', // Teal
+            '#06b6d4', // Cyan
+            '#f59e0b', // Amber
+            '#ef4444', // Red
+            '#8b5cf6', // Violet
+            '#ec4899', // Pink
+            '#64748b', // Slate
+            '#14b8a6', // Teal 500
+            '#f97316'  // Orange
           ],
           borderColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40',
-            '#FF6384',
-            '#C9CBCF',
-            '#4BC0C0',
-            '#FF6384'
+            '#047857',
+            '#0f766e',
+            '#0891b2',
+            '#d97706',
+            '#b91c1c',
+            '#6d28d9',
+            '#be185d',
+            '#475569',
+            '#0f766e',
+            '#c2410c'
           ],
           borderWidth: 1,
         },
@@ -102,12 +102,12 @@ const IssueChart = ({ issues }) => {
         {
           label: 'Monthly Reports',
           data: counts,
-          borderColor: '#ff9a47',
-          backgroundColor: 'rgba(255, 154, 71, 0.1)',
+          borderColor: '#059669',
+          backgroundColor: 'rgba(5, 150, 105, 0.1)',
           borderWidth: 3,
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#ff9a47',
+          pointBackgroundColor: '#059669',
           pointBorderColor: '#ffffff',
           pointBorderWidth: 2,
           pointRadius: 6,
@@ -142,10 +142,10 @@ const IssueChart = ({ issues }) => {
           data: Object.values(statusCount),
           backgroundColor: [
             '#ef4444', // red for open
-            '#3b82f6', // blue for in progress
+            '#06b6d4', // cyan for in progress
             '#f59e0b', // amber for pending
-            '#6b7280', // gray for closed
-            '#10b981', // green for resolved
+            '#52525b', // zinc for closed
+            '#059669', // emerald for resolved
           ],
           borderWidth: 0,
         },
@@ -164,15 +164,19 @@ const IssueChart = ({ issues }) => {
           usePointStyle: true,
           font: {
             size: 12,
+            family: "'Inter', sans-serif"
           },
+          color: '#71717a' // zinc-500
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(9, 9, 11, 0.9)', // zinc-950
         titleColor: 'white',
         bodyColor: 'white',
-        borderColor: '#ff9a47',
+        borderColor: '#059669',
         borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
       },
     },
   };
@@ -184,12 +188,14 @@ const IssueChart = ({ issues }) => {
         beginAtZero: true,
         ticks: {
           stepSize: 1,
+          color: '#71717a'
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(161, 161, 170, 0.1)', // zinc-400
         },
       },
       x: {
+        ticks: { color: '#71717a' },
         grid: {
           display: false,
         },
@@ -204,14 +210,16 @@ const IssueChart = ({ issues }) => {
         beginAtZero: true,
         ticks: {
           stepSize: 1,
+          color: '#71717a'
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(161, 161, 170, 0.1)',
         },
       },
       x: {
+        ticks: { color: '#71717a' },
         grid: {
-          color: 'rgba(0, 0, 0, 0.05)',
+          color: 'rgba(161, 161, 170, 0.05)',
         },
       },
     },
@@ -228,15 +236,19 @@ const IssueChart = ({ issues }) => {
           usePointStyle: true,
           font: {
             size: 12,
+            family: "'Inter', sans-serif"
           },
+          color: '#71717a'
         },
       },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(9, 9, 11, 0.9)',
         titleColor: 'white',
         bodyColor: 'white',
-        borderColor: '#ff9a47',
+        borderColor: '#059669',
         borderWidth: 1,
+        padding: 12,
+        cornerRadius: 8,
         callbacks: {
           label: function(context) {
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -253,13 +265,15 @@ const IssueChart = ({ issues }) => {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 gap-4 mb-8">
         
-        <div className="bg-gradient-to-r from-purple-600 to-purple-400 text-white p-6 rounded-xl shadow-lg">
+        <div className="rounded-[28px] border border-green-100 bg-gradient-to-br from-emerald-600 to-teal-500 p-6 shadow-xl shadow-green-500/5 backdrop-blur-xl dark:border-green-900/20 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm">Categories</p>
-              <p className="text-3xl font-bold">{Object.keys(categoryData.labels || {}).length}</p>
+              <p className="text-emerald-100 text-sm font-semibold uppercase tracking-wider">Categories</p>
+              <p className="font-mono text-4xl font-bold mt-1">{Object.keys(categoryData.labels || {}).length}</p>
             </div>
-            <PieChart className="w-8 h-8 text-purple-200" />
+            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/20 backdrop-blur-md">
+              <PieChart className="w-7 h-7 text-white" />
+            </div>
           </div>
         </div>
       </div>
@@ -267,10 +281,12 @@ const IssueChart = ({ issues }) => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Issues by Category - Bar Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className="rounded-[28px] border border-green-100 bg-white/85 p-6 shadow-xl shadow-green-500/5 backdrop-blur-xl dark:border-green-900/20 dark:bg-slate-900/80">
           <div className="flex items-center gap-3 mb-6">
-            <BarChart3 className="w-6 h-6 text-blue-500" />
-            <h3 className="text-xl font-semibold text-gray-800">Issues by Category</h3>
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 dark:bg-emerald-900/30">
+              <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <h3 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">Issues by Category</h3>
           </div>
           <div className="h-80">
             <Bar data={categoryData} options={barOptions} />
@@ -278,10 +294,12 @@ const IssueChart = ({ issues }) => {
         </div>
 
         {/* Issues by Status - Pie Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+        <div className="rounded-[28px] border border-green-100 bg-white/85 p-6 shadow-xl shadow-green-500/5 backdrop-blur-xl dark:border-green-900/20 dark:bg-slate-900/80">
           <div className="flex items-center gap-3 mb-6">
-            <PieChart className="w-6 h-6 text-purple-500" />
-            <h3 className="text-xl font-semibold text-gray-800">Issues by Status</h3>
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-teal-50 dark:bg-teal-900/30">
+              <PieChart className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+            </div>
+            <h3 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">Issues by Status</h3>
           </div>
           <div className="h-80">
             <Pie data={statusData} options={pieOptions} />
@@ -290,10 +308,12 @@ const IssueChart = ({ issues }) => {
       </div>
 
       {/* Monthly Trend - Full Width */}
-      <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+      <div className="rounded-[28px] border border-green-100 bg-white/85 p-6 shadow-xl shadow-green-500/5 backdrop-blur-xl dark:border-green-900/20 dark:bg-slate-900/80">
         <div className="flex items-center gap-3 mb-6">
-          <TrendingUp className="w-6 h-6 text-orange-500" />
-          <h3 className="text-xl font-semibold text-gray-800">Monthly Reports Trend</h3>
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-50 dark:bg-cyan-900/30">
+            <TrendingUp className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+          </div>
+          <h3 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">Monthly Reports Trend</h3>
         </div>
         <div className="h-80">
           <Line data={monthlyTrendData} options={lineOptions} />

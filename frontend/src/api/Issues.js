@@ -87,6 +87,66 @@ export const updateIssueStatus = async (issueId, newStatus, token) => {
     }
 };
 
+export const assignIssue = async (issueId, payload, token) => {
+    try {
+        const res = await axios.patch(`${BASE_API_URL}/api/issues/${issueId}/assign`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return res.data;
+    } catch (error) {
+        console.error("Error assigning issue:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+export const escalateIssue = async (issueId, token) => {
+    try {
+        const res = await axios.patch(`${BASE_API_URL}/api/issues/${issueId}/escalate`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return res.data;
+    } catch (error) {
+        console.error("Error escalating issue:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+export const decideIssueAuthenticity = async (issueId, payload, token) => {
+    try {
+        const res = await axios.patch(`${BASE_API_URL}/api/issues/${issueId}/decision`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return res.data;
+    } catch (error) {
+        console.error("Error applying municipal decision:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+export const verifyIssueAuthenticity = async (issueId, voteType, token) => {
+    try {
+        const res = await axios.post(`${BASE_API_URL}/api/issues/${issueId}/vote`, { voteType }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return res.data;
+    } catch (error) {
+        console.error("Error verifying issue authenticity:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
 // Get issues with filtering and pagination
 export const getFilteredIssues = async (filters = {}, token) => {
     try {

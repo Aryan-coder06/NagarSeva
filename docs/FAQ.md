@@ -18,7 +18,7 @@ Yes, open-source under MIT License.
 **Tech stack?**  
 Frontend: React, Vite, Tailwind, Leaflet, Chart.js  
 Backend: Node.js, Express, MongoDB  
-Services: Appwrite (auth), Cloudinary (images), OpenRouter AI
+Services: Firebase Authentication, Cloudinary (images), Gemini AI
 
 **Requirements?**  
 Development: Node.js 16+, MongoDB, Git  
@@ -30,7 +30,7 @@ See [Quick Setup](../README.md#quick-setup) in README.
 ## Features
 
 **How does AI categorization work?**  
-OpenRouter AI analyzes uploaded images and categorizes into: Roads & Transport, Street Lighting, Garbage & Sanitation, Water Supply & Drainage, Electricity, Public Safety, Other.
+Gemini analyzes uploaded images and categorizes into: Roads & Transport, Street Lighting, Garbage & Sanitation, Water Supply & Drainage, Electricity, Public Safety, Other.
 
 **Can I use without GPS?**  
 Yes, manually set location on the interactive map if GPS unavailable.
@@ -41,10 +41,10 @@ Users can vote once per issue to help prioritize community concerns.
 ## Security
 
 **Account creation?**  
-Email/password signup via Appwrite authentication. Email verification required.
+Email/password signup via Firebase Authentication. Email verification can be enabled from the Firebase console.
 
 **Data protection?**  
-Token-based auth, encrypted passwords, HTTPS transmission, Appwrite security platform.
+Firebase ID-token based auth, encrypted passwords, HTTPS transmission, and backend token verification with Firebase Admin.
 
 **Account deletion?**  
 Yes, request deletion to remove personal data (anonymized reports remain).

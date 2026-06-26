@@ -1,388 +1,250 @@
-import { FileText, CheckCircle, Wrench, Bell, MapPin, AlertCircle, Users, TrendingUp, Award, Sparkles, ArrowRight, Menu } from "lucide-react";
-import { Link } from "react-router-dom";
-// Inline Link Component
-function LinkComponent({ children, className = "", ...props }) {
-  return (
-    <Link
-      className={`inline-flex items-center cursor-pointer justify-center px-4 py-2 rounded-xl transition-all duration-200 ${className}`}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
-}
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  BarChart3,
+  Brain,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  MapPinned,
+  Radar,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  ThumbsUp,
+} from 'lucide-react';
+import { demoIssues, getStatusConfig } from '../../data/demoIssues';
 
-// Inline Badge Component
-function Badge({ children, className = "", ...props }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs transition-all ${className}`}
-      {...props}
-    >
-      {children}
-    </span>
-  );
-}
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const stats = [
+  { label: 'Reports triaged', value: '12.8k', icon: Radar },
+  { label: 'Community checks', value: '41k', icon: ThumbsUp },
+  { label: 'Avg. response cut', value: '37%', icon: Clock3 },
+  { label: 'Hotspots mapped', value: '286', icon: MapPinned },
+];
+
+const agentSteps = [
+  {
+    title: 'Understands evidence',
+    text: 'Gemini reads the citizen message and image to detect category, severity, risk, and urgency.',
+    icon: Brain,
+  },
+  {
+    title: 'Prioritizes action',
+    text: 'NagarSeva combines AI severity, votes, age, and status into a transparent civic priority score.',
+    icon: BarChart3,
+  },
+  {
+    title: 'Coordinates response',
+    text: 'Admins get department suggestions, resolution steps, and authority-ready summaries.',
+    icon: Route,
+  },
+];
 
 export default function Landing() {
-  const issueCards = [
-    {
-      title: "Broken Street Light",
-      location: "MG Road, Sector 14",
-      status: "In Progress",
-      statusColor: "bg-blue-500",
-      votes: 42,
-      time: "2h ago",
-      size: "large",
-      imageUrl: "https://res.cloudinary.com/da3wjnlzg/image/upload/v1759934831/JagrukImageContainer/vsgmbboktdap1v5elbls.jpg"
-    },
-    {
-      title: "Pothole on Highway",
-      location: "NH-48, Km 23",
-      status: "Resolved",
-      statusColor: "bg-green-500",
-      votes: 156,
-      time: "1d ago",
-      size: "small"
-    },
-    {
-      title: "Garbage Not Collected",
-      location: "Lawate Nagar",
-      status: "Reported",
-      statusColor: "bg-[#ff9a47]",
-      votes: 89,
-      time: "3h ago",
-      size: "medium"
-    },
-    {
-      title: "Water Leakage",
-      location: "Ashok Nagar, Lane 5",
-      status: "In Progress",
-      statusColor: "bg-blue-500",
-      votes: 67,
-      time: "5h ago",
-      size: "small"
-    },
-    {
-      title: "Illegal Parking",
-      location: "Market Square",
-      status: "Reported",
-      statusColor: "bg-[#ff9a47]",
-      votes: 34,
-      time: "1h ago",
-      size: "medium"
-    }
-  ];
-
-  const howItWorksSteps = [
-    {
-      icon: FileText,
-      title: "Report",
-      description: "Submit issues with photo and location",
-      gradient: "from-[#ff9a47] to-orange-500"
-    },
-    {
-      icon: CheckCircle,
-      title: "Verify",
-      description: "Admin validates the issue",
-      gradient: "from-blue-500 to-cyan-500"
-    },
-    {
-      icon: Wrench,
-      title: "Resolve",
-      description: "Authorities take action",
-      gradient: "from-purple-500 to-pink-500"
-    },
-    {
-      icon: Bell,
-      title: "Notify",
-      description: "Get updates on progress",
-      gradient: "from-green-500 to-emerald-500"
-    }
-  ];
-
-  const stats = [
-    { value: "10K+", label: "Issues Reported", icon: FileText },
-    { value: "85%", label: "Resolution Rate", icon: TrendingUp },
-    { value: "50K+", label: "Active Citizens", icon: Users },
-    { value: "200+", label: "Cities Covered", icon: Award }
-  ];
+  const featured = demoIssues[0];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 text-gray-900 overflow-hidden">
-      {/* Static background grid */}
-      <div className="fixed z-[-1] inset-0 bg-[linear-gradient(to_right,#ff9a4715_1px,transparent_1px),linear-gradient(to_bottom,#ff9a4715_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)]" />
+    <main className="min-h-screen bg-zinc-50 text-zinc-950 dark:bg-slate-950 dark:text-zinc-100">
+      {/* ─── HERO ─── */}
+      <section className="relative overflow-hidden border-b border-green-100 bg-white dark:border-green-900/20 dark:bg-slate-950">
+        {/* Decorative gradient orbs */}
+        <div className="pointer-events-none absolute -top-40 right-0 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-emerald-200/40 to-teal-200/20 blur-3xl dark:from-emerald-900/20 dark:to-teal-900/10" />
+        <div className="pointer-events-none absolute -bottom-40 -left-20 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-cyan-200/30 to-emerald-200/20 blur-3xl dark:from-cyan-900/15 dark:to-emerald-900/10" />
 
-      {/* Static background orbs */}
-      <div className="fixed top-20 left-10 w-72 h-72 bg-[#ff9a47]/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="fixed bottom-20 right-10 w-96 h-96 bg-purple-300/30 rounded-full blur-[120px] pointer-events-none" />
+        <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl grid-cols-1 items-center gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_520px] lg:px-8">
+          <motion.div
+            className="max-w-3xl"
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+          >
+            <motion.div variants={fadeUp} className="mb-5 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Google Gemini powered civic triage
+            </motion.div>
 
-
-      {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-10 sm:pt-24">
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 mb-8 shadow-sm">
-              <Sparkles className="w-4 h-4 text-[#ff9a47]" />
-              <span className="text-sm text-gray-700">Empowering Citizens</span>
-            </div>
-
-            <h1
-              className="text-5xl sm:text-6xl lg:text-8xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent leading-tight"
+            <motion.h1
+              variants={fadeUp}
+              className="font-heading max-w-4xl text-5xl font-bold leading-tight tracking-tight sm:text-6xl"
             >
-              Report Issues.
-              <br />
-              <span className="bg-gradient-to-r from-[#ff9a47] via-orange-500 to-orange-600 bg-clip-text text-transparent">
-                Build Change.
-              </span>
-            </h1>
+              Turn local problems into{' '}
+              <span className="gradient-text">verified civic action.</span>
+            </motion.h1>
 
-            <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-              Join thousands of citizens making their communities better, one report at a time.
-            </p>
+            <motion.p variants={fadeUp} className="mt-5 max-w-2xl text-lg leading-8 text-gray-600 dark:text-gray-300">
+              NagarSeva helps citizens report issues with photos and location, then uses AI to classify, prioritize, verify, and track every case through resolution.
+            </motion.p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <div>
-                <LinkComponent to="/report" className="bg-gradient-to-r from-[#ff9a47] to-orange-500 hover:from-[#ff9a47]/90 hover:to-orange-500/90 text-white px-8 py-6 rounded-full shadow-2xl shadow-[#ff9a47]/30 border-0 group">
-                  Start Reporting
-                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </LinkComponent>
-              </div>
-              <div>
-                <LinkComponent to="/community" className="bg-white/60 backdrop-blur-sm hover:bg-white/80 text-gray-900 px-8 py-6 rounded-full border border-gray-200/50 shadow-lg">
-                  View Issues
-                </LinkComponent>
-              </div>
-            </div>
-
-            {/* Static stats */}
-            <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              {stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 hover:bg-white/80 hover:shadow-xl transition-all duration-300"
-                >
-                  <stat.icon className="w-8 h-8 text-[#ff9a47] mb-3 mx-auto" />
-                  <div className="text-3xl font-bold mb-1 text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-        </div>
-
-        {/* Static scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2">
-          <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center p-2">
-            <div className="w-1 h-2 bg-gray-500 rounded-full" />
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="relative py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-block bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 mb-4 shadow-sm">
-              <span className="text-sm text-[#ff9a47] font-medium">How It Works</span>
-            </div>
-            <h2 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Simple. Fast. Effective.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {howItWorksSteps.map((step, index) => (
-              <div
-                key={index}
-                className="relative group"
+            <motion.div variants={fadeUp} className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/report"
+                className="btn-premium inline-flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40"
               >
-                <div className="relative bg-white/60 backdrop-blur-xl border border-gray-200/50 rounded-3xl p-8 hover:bg-white/80 hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                  {/* Gradient overlay */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${step.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
-                  
-                  {/* Step number */}
-                  <div className="absolute top-4 right-4 text-6xl font-bold opacity-5 group-hover:opacity-10 transition-opacity text-gray-900">
-                    {index + 1}
-                  </div>
+                Report an issue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+              <Link
+                to="/community"
+                className="btn-premium inline-flex items-center justify-center border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+              >
+                Open community map
+              </Link>
+            </motion.div>
 
-                  <div className={`relative w-16 h-16 bg-gradient-to-br ${step.gradient} rounded-2xl flex items-center justify-center mb-6 shadow-lg`}>
-                    <step.icon className="w-8 h-8 text-white" />
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{step.title}</h3>
-                  <p className="text-sm text-gray-600">{step.description}</p>
-
-                  {/* Connecting line */}
-                  {index < howItWorksSteps.length - 1 && (
-                    <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-gray-300 to-transparent" />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Community Reports - Bento Grid */}
-      <section id="community" className="relative py-32 px-4 sm:px-6 lg:px-8 bg-white/30">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-16">
-            <div className="inline-block bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 mb-4 shadow-sm">
-              <span className="text-sm text-[#ff9a47] font-medium">Community</span>
-            </div>
-            <h2 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent mb-4">
-              Sample Reports
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              See what citizens are reporting in real-time across various communities.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]">
-            {issueCards.map((issue, index) => {
-              const sizeClass = issue.size === 'large' 
-                ? 'md:col-span-2 md:row-span-2' 
-                : issue.size === 'medium'
-                ? 'md:col-span-2'
-                : 'md:col-span-1';
-
-              return (
-                <div
-                  key={index}
-                  className={`${sizeClass} group cursor-pointer`}
+            <motion.div variants={stagger} className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {stats.map((item, i) => (
+                <motion.div
+                  key={item.label}
+                  variants={fadeUp}
+                  className="group rounded-2xl border border-green-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-green-900/20 dark:bg-slate-900/70"
                 >
-                  <div className={`relative h-full bg-white/70 backdrop-blur-xl border border-gray-200/50 rounded-3xl p-6 hover:bg-white/90 hover:shadow-2xl transition-all duration-500 overflow-hidden`}>
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#ff9a47]/0 to-[#ff9a47]/7 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <item.icon className="mb-3 h-5 w-5 text-emerald-600 transition-transform duration-300 group-hover:scale-110 dark:text-emerald-400" />
+                  <p className="font-mono text-2xl font-bold text-zinc-950 dark:text-white">{item.value}</p>
+                  <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{item.label}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
 
-                    <div className={`relative h-full flex flex-col justify-between ${issue.imageUrl ? 'bg-cover bg-center rounded-2xl p-4' : ''}`} style={issue.imageUrl ? { backgroundImage: `url(${issue.imageUrl})` } : {}}>
-                      <div>
-                        <div className="flex items-start justify-between mb-4">
-                          <Badge className={`${issue.statusColor} text-white border-0 shadow-lg`}>
-                            {issue.status}
-                          </Badge>
-                          <span className="text-xs text-gray-500">{issue.time}</span>
-                        </div>
-                        
-                        <h3 className="text-lg font-semibold text-gray-900 mb-3 group-hover:text-[#ff9a47] group-hover:text-shadow-zinc-950 transition-colors">
-                          {issue.title}
-                        </h3>
-                        
-                        <div className="flex items-center gap-2 text-gray-600 mb-4">
-                          <MapPin className="w-4 h-4" />
-                          <span className="text-sm">{issue.location}</span>
-                        </div>
-                      </div>
-                    </div>
+          {/* Live Civic Case Preview Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 40, rotateY: -5 }}
+            animate={{ opacity: 1, x: 0, rotateY: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="rounded-3xl border border-green-100 bg-white p-3 shadow-2xl shadow-green-500/10 dark:border-green-900/20 dark:bg-slate-900"
+          >
+            <div className="rounded-2xl bg-gradient-to-br from-gray-950 to-green-950 p-4">
+              <div className="rounded-2xl bg-white p-4 dark:bg-slate-950">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-heading text-sm font-semibold text-zinc-950 dark:text-white">Live civic case</p>
+                    <p className="text-xs text-zinc-500">AI generated triage preview</p>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${getStatusConfig(featured.status).badge}`}>
+                    {getStatusConfig(featured.status).label}
+                  </span>
+                </div>
+                <img src={featured.imageUrl} alt="" className="h-56 w-full rounded-xl object-cover" />
+                <div className="mt-4">
+                  <h2 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">{featured.title}</h2>
+                  <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{featured.userMessage}</p>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl bg-red-50 p-3 dark:bg-red-950/20">
+                    <p className="text-xs font-medium text-red-600">Severity</p>
+                    <p className="font-mono font-bold text-red-700 dark:text-red-300">{featured.severity}</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 p-3 dark:bg-amber-950/20">
+                    <p className="text-xs font-medium text-amber-600">Priority</p>
+                    <p className="font-mono font-bold text-amber-700 dark:text-amber-300">{featured.priorityScore}</p>
+                  </div>
+                  <div className="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950/20">
+                    <p className="text-xs font-medium text-emerald-600">Votes</p>
+                    <p className="font-mono font-bold text-emerald-700 dark:text-emerald-300">{featured.votes}</p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div className="text-center mt-12">
-            <div>
-              <LinkComponent to='/community' className="bg-white/60 backdrop-blur-sm hover:bg-white/80 text-gray-900 px-8 py-6 rounded-full border border-gray-200/50 shadow-lg">
-                View All Reports
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </LinkComponent>
+                <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                  <p className="font-mono text-xs font-semibold uppercase text-zinc-500">Recommended action</p>
+                  <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">{featured.recommendedAction}</p>
+                </div>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="impact" className="relative py-32 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="relative bg-gradient-to-br from-[#ff9a47] to-orange-500 backdrop-blur-xl border border-orange-400/30 rounded-[3rem] p-12 md:p-16 overflow-hidden shadow-2xl">
-            {/* Static background */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff15_1px,transparent_1px),linear-gradient(to_bottom,#ffffff15_1px,transparent_1px)] bg-[size:2rem_2rem]" />
-            
-            <div className="relative text-center">
-              <div className="inline-block mb-6">
-                <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl border border-white/30">
-                  <Sparkles className="w-10 h-10 text-white" />
-                </div>
+      {/* ─── AGENT STEPS ─── */}
+      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <motion.div
+          className="grid grid-cols-1 gap-4 md:grid-cols-3"
+          variants={stagger}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-80px' }}
+        >
+          {agentSteps.map((step) => (
+            <motion.div
+              key={step.title}
+              variants={fadeUp}
+              className="group rounded-[28px] border border-green-100 bg-white/70 p-6 shadow-sm backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-xl dark:border-green-900/20 dark:bg-slate-900/70"
+            >
+              <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-700 transition-transform duration-300 group-hover:scale-110 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <step.icon className="h-5 w-5" />
               </div>
-
-              <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-                Ready to Make a Difference?
-              </h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-                Join our growing community of active citizens and help build a better tomorrow.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <div>
-                  <LinkComponent to="/report" className="bg-white text-[#ff9a47] hover:bg-gray-50 px-8 py-6 rounded-full shadow-2xl border-0 font-semibold">
-                    Get Started Now
-                    <ArrowRight className="ml-2 w-5 h-5" />
-                  </LinkComponent>
-                </div>
-                <div>
-                  <LinkComponent className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white px-8 py-6 rounded-full border border-white/30">
-                    Learn More
-                  </LinkComponent>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              <h3 className="font-heading text-lg font-bold text-zinc-950 dark:text-white">{step.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{step.text}</p>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
-      {/* Footer */}
-      <footer className="relative border-t border-gray-200 py-12 px-4 sm:px-6 lg:px-8 mt-20 bg-white/40 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#ff9a47] to-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-[#ff9a47]/40">
-                  <AlertCircle className="w-6 h-6 text-white" />
+      {/* ─── COMMUNITY PULSE ─── */}
+      <section className="border-t border-green-100 bg-white dark:border-green-900/20 dark:bg-slate-900/50">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <motion.div
+            className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div>
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Community pulse</p>
+              <h2 className="font-heading mt-2 text-3xl font-bold text-zinc-950 dark:text-white">Issues citizens are validating now</h2>
+            </div>
+            <Link to="/community" className="inline-flex items-center text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800 dark:text-emerald-300">
+              View all reports
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 gap-4 md:grid-cols-4"
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: '-60px' }}
+          >
+            {demoIssues.map((issue) => (
+              <motion.div
+                key={issue._id}
+                variants={fadeUp}
+                className="group rounded-2xl border border-green-100 bg-white/70 p-4 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-green-900/20 dark:bg-slate-900/70"
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`rounded-full border px-2 py-1 text-xs font-semibold ${getStatusConfig(issue.status).badge}`}>
+                    {getStatusConfig(issue.status).label}
+                  </span>
+                  <span className="font-mono text-xs font-semibold text-zinc-500 dark:text-zinc-400">{issue.priorityScore} priority</span>
                 </div>
-                <span className="text-xl font-semibold bg-gradient-to-r from-[#ff9a47] to-orange-500 bg-clip-text text-transparent">
-                  Jagruk
-                </span>
-              </div>
-              <p className="text-gray-600 max-w-sm">
-                Empowering citizens to report issues and build better communities through collective action.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-base font-semibold text-gray-900 mb-4">Quick Links</h4>
-              <ul className="space-y-2">
-                {["Home", "Community", "About", "Contact"].map((link) => (
-                  <li key={link}>
-                    <a href={`#${link.toLowerCase()}`} className="text-sm text-gray-600 hover:text-[#ff9a47] transition-colors">
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="text-base font-semibold text-gray-900 mb-4">Contact</h4>
-              <ul className="space-y-2 text-gray-600">
-                <li className="text-sm">support@jagruk.com</li>
-                <li className="text-sm">+91 1234567890</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-600 text-sm">
-              &copy; 2025 Jagruk. All rights reserved.
-            </p>
-            <div className="flex gap-6">
-              {["Privacy", "Terms", "Cookies"].map((item) => (
-                <a key={item} href="#" className="text-gray-600 hover:text-[#ff9a47] transition-colors text-sm">
-                  {item}
-                </a>
-              ))}
-            </div>
-          </div>
+                <h3 className="font-heading mt-4 min-h-12 text-base font-bold text-zinc-950 dark:text-white">{issue.title}</h3>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{issue.city}, {issue.state}</p>
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <span className="inline-flex items-center text-zinc-600 dark:text-zinc-300">
+                    <ThumbsUp className="mr-1.5 h-4 w-4 text-emerald-600" />
+                    <span className="font-mono">{issue.votes}</span>
+                  </span>
+                  <span className="inline-flex items-center text-zinc-600 dark:text-zinc-300">
+                    <CheckCircle2 className="mr-1.5 h-4 w-4 text-emerald-600" />
+                    {issue.suggestedDepartment}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
-      </footer>
-    </div>
+      </section>
+    </main>
   );
 }

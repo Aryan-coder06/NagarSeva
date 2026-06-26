@@ -8,7 +8,7 @@ Urban communities often face challenges in reporting and managing local issues s
 
 ## Solution
 
-Jagruk is a web application that allows citizens to report local issues with GPS-tagged locations and AI-powered categorization. The platform features an interactive map for visualizing reported issues, a dashboard for administrators to track and manage reports, and community voting to prioritize resolutions. Built with React, Node.js, and MongoDB, the system integrates services like Appwrite for authentication, Cloudinary for image handling, and OpenRouter AI for issue categorization.
+NagarSeva is a web application that allows citizens to report local issues with GPS-tagged locations and AI-powered categorization. The platform features an interactive map for visualizing reported issues, a dashboard for administrators to track and manage reports, and community voting to prioritize resolutions. Built with React, Node.js, and MongoDB, the system integrates services like Firebase Authentication, Cloudinary for image handling, and Gemini AI for issue categorization.
 
 ## Features
 
@@ -23,7 +23,7 @@ Jagruk is a web application that allows citizens to report local issues with GPS
 
 **Frontend:** React 19.1.1, Vite, Tailwind CSS, Leaflet Maps, Chart.js  
 **Backend:** Node.js, Express.js, MongoDB, Mongoose  
-**Services:** Appwrite (Auth), Cloudinary (Images), OpenRouter AI, OpenCage Geocoding
+**Services:** Firebase Authentication, Cloudinary (Images), Gemini AI, OpenCage Geocoding
 
 ### System Architecture
 
@@ -58,19 +58,26 @@ Setup your `.env` files with the following variables:
 ```env
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/smart-community
-APPWRITE_PROJECT_ID=your_appwrite_project_id
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_CLIENT_EMAIL=your_firebase_admin_client_email
+FIREBASE_PRIVATE_KEY=your_firebase_admin_private_key
 CLOUD_NAME=your_cloudinary_cloud_name
 CLOUD_API_KEY=your_cloudinary_api_key
 CLOUD_API_SECRET=your_cloudinary_api_secret
-OPENROUTER_API_KEY=your_openrouter_api_key
+GEMINI_API_KEY=your_gemini_api_key
 OPENCAGE_API_KEY=your_opencage_api_key
 ```
 
 **Frontend (.env):**
 ```env
 VITE_BACKEND_URL=http://localhost:3000
-VITE_APPWRITE_ENDPOINT=your_appwrite_endpoint
-VITE_APPWRITE_PROJECT_ID=your_appwrite_project_id
+VITE_FIREBASE_API_KEY=your_firebase_web_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
+VITE_ADMIN_EMAILS=admin@example.com
 ```
 
 Access: Frontend at `http://localhost:5173`, Backend at `http://localhost:3000`

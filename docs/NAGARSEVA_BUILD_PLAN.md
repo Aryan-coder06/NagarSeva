@@ -24,7 +24,7 @@ NagarSeva should be pitched as an AI civic operations layer:
 ## Highest-Scoring Features
 
 1. Gemini Civic Triage Agent
-   - Replace OpenRouter with Gemini API.
+   - Use Gemini API for issue analysis.
    - Analyze uploaded issue image plus citizen message.
    - Return structured JSON: category, issue type, title, severity, urgency, suggested department, public summary, authority summary, recommended action, confidence.
 
@@ -63,14 +63,14 @@ NagarSeva should be pitched as an AI civic operations layer:
 
 ## Replace
 
-- Replace `backend/utils/analyseImage.js` OpenRouter implementation with Gemini.
+- Extend `backend/utils/analyseImage.js` Gemini output from category/title to full civic triage.
 - Replace Jagruk branding with NagarSeva.
 - Replace simple category/title AI output with full civic triage structured output.
 
 ## Keep
 
 - MongoDB/Mongoose data model.
-- Appwrite auth for now unless it blocks deployment.
+- Firebase Authentication for citizen/admin identity.
 - Cloudinary upload flow.
 - Leaflet map.
 - Logs and admin pages.

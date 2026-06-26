@@ -1,71 +1,106 @@
-import { Link } from "react-router-dom";
-import { AlertCircle, Sparkles, ArrowLeft } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Home, MapPinned, Search } from 'lucide-react';
 
-//  Reusable LinkComponent styling
-function LinkComponent({ children, className = "", ...props }) {
-  return (
-    <Link
-      className={`inline-flex items-center cursor-pointer justify-center px-6 py-3 rounded-full transition-all duration-200 font-semibold ${className}`}
-      {...props}
-    >
-      {children}
-    </Link>
-  );
-}
+const floatVariant = (delay) => ({
+  animate: {
+    y: [0, -12, 0],
+    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut', delay },
+  },
+});
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen  flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-white to-amber-50 text-gray-900 overflow-hidden relative    ">
-       {/* Background orbs */}
-      <div className="fixed top-20 left-10 w-72 h-72 bg-[#ff9a47]/20 rounded-full blur-[120px]" />
-      <div className="fixed bottom-20 right-10 w-96 h-96 bg-purple-300/30 rounded-full blur-[120px]" />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-20">
+      {/* Decorative gradient orbs */}
+      <div className="pointer-events-none absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-emerald-200/30 to-cyan-200/20 blur-3xl dark:from-emerald-900/15 dark:to-cyan-900/10" />
+      <div className="pointer-events-none absolute -bottom-40 -left-20 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-teal-200/25 to-emerald-200/15 blur-3xl dark:from-teal-900/10 dark:to-emerald-900/10" />
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-6 -top-12">
-        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-sm border border-gray-200/50 rounded-full px-4 py-2 mb-8 shadow-sm">
-          <Sparkles className="w-4 h-4 text-[#ff9a47]" />
-          <span className="text-sm text-gray-700">Stay Aware. Stay Jagruk.</span>
-        </div>
+      <div className="relative z-10 mx-auto max-w-lg text-center">
+        {/* Animated 404 number */}
+        <motion.div
+          className="relative mb-8 select-none"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <span className="font-heading text-[10rem] font-bold leading-none tracking-tighter sm:text-[12rem]">
+            <span className="gradient-text">4</span>
+            <motion.span
+              className="relative inline-block"
+              {...floatVariant(0)}
+            >
+              <span className="gradient-text">0</span>
+              {/* Decorative floating icons */}
+              <motion.div
+                className="absolute -right-6 -top-4"
+                {...floatVariant(0.5)}
+              >
+                <MapPinned className="h-6 w-6 text-emerald-400/60" />
+              </motion.div>
+              <motion.div
+                className="absolute -left-8 bottom-4"
+                {...floatVariant(1)}
+              >
+                <Search className="h-5 w-5 text-teal-400/50" />
+              </motion.div>
+            </motion.span>
+            <span className="gradient-text">4</span>
+          </span>
+        </motion.div>
 
-        <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#ff9a47] to-orange-500 rounded-3xl flex items-center justify-center shadow-xl shadow-[#ff9a47]/30">
-            <AlertCircle className="w-10 h-10 text-white" />
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <h1 className="font-heading text-3xl font-bold text-zinc-950 dark:text-white sm:text-4xl">
+            Page not found
+          </h1>
+          <p className="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-300">
+            The page you're looking for doesn't exist or has been moved. Let's get you back on track.
+          </p>
+        </motion.div>
 
-        <h1 className="text-6xl sm:text-7xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent">
-          404
-        </h1>
-        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-4">
-          Page Not Found
-        </h2>
-        <p className="text-gray-600 text-lg max-w-xl mx-auto mb-10">
-          Oops! The page you’re looking for doesn’t exist or may have been moved.  
-          Don’t worry, you can go back and continue exploring your community.
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <LinkComponent
+        <motion.div
+          className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Link
             to="/"
-            className="bg-gradient-to-r from-[#ff9a47] to-orange-500 hover:from-[#ff9a47]/90 hover:to-orange-500/90 text-white shadow-lg shadow-[#ff9a47]/30"
+            className="btn-premium inline-flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Go Home
-          </LinkComponent>
-
-          <LinkComponent
-            to="/community"
-            className="bg-white/60 backdrop-blur-sm hover:bg-white/80 text-gray-900 border border-gray-200/50 shadow-md"
+            <Home className="mr-2 h-4 w-4" />
+            Back to home
+          </Link>
+          <button
+            onClick={() => window.history.back()}
+            className="btn-premium inline-flex items-center justify-center border border-zinc-300 bg-white text-zinc-700 dark:border-zinc-700 dark:bg-slate-900 dark:text-white"
           >
-            View Community Issues
-          </LinkComponent>
-        </div>
-      </div>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Go back
+          </button>
+        </motion.div>
 
-      {/* Footer message */}
-      <div className="absolute bottom-20 text-gray-500 text-sm">
-        &copy; 2025 Jagruk • Building Better Communities
+        {/* Decorative dotted line */}
+        <motion.div
+          className="mt-12 flex items-center justify-center gap-1"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="h-1.5 w-1.5 rounded-full bg-emerald-300 dark:bg-emerald-700"
+              animate={{ scale: [1, 1.4, 1], opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+            />
+          ))}
+        </motion.div>
       </div>
-    </div>
+    </main>
   );
 }

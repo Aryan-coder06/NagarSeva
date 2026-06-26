@@ -1,7 +1,13 @@
 import React, {useState, useEffect} from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { X, Edit, Trash2, UserPlus, Phone, Mail, MapPin, Tag } from 'lucide-react'
 import { getOfficers, createOfficer, updateOfficer, deleteOfficer } from '../api/Officers'
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+};
 
 const ManageOfficers = () => {
   const [showOfficerPopup, setShowOfficerPopup] = useState(false);
@@ -34,19 +40,14 @@ const ManageOfficers = () => {
     fetchOfficers();
   }, []);
 
-  useEffect(() => {
-    fetchOfficers();
-  }, []);
-
   const fetchOfficers = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const token = await getToken();
-      const officersData = await getOfficers(token);
-      setOfficers(officersData);
+      const data = await getOfficers(token);
+      setOfficers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching officers:', error);
-      // You could add a toast notification here
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ const ManageOfficers = () => {
       email: '',
       role: 'officer',
       assignedCategories: [],
-      assignedLocations: '', // Reset to empty string
+      assignedLocations: '',
       phone: ''
     });
     setMode('add');
@@ -67,6 +68,7 @@ const ManageOfficers = () => {
 
   const handleAddOfficer = () => {
     resetForm();
+    setMode('add');
     setShowOfficerPopup(true);
   };
 
@@ -75,26 +77,25 @@ const ManageOfficers = () => {
       fullName: officer.fullName || '',
       email: officer.email || '',
       role: officer.role || 'officer',
-      assignedCategories: Array.isArray(officer.assignedCategories) ? officer.assignedCategories : [],
-      assignedLocations: Array.isArray(officer.assignedLocations) ? officer.assignedLocations.join(', ') : '', // Convert array to string
+      assignedCategories: officer.assignedCategories || [],
+      assignedLocations: Array.isArray(officer.assignedLocations)
+        ? officer.assignedLocations.join(', ')
+        : officer.assignedLocations || '',
       phone: officer.phone || ''
     });
+    setEditingOfficerId(officer._id);
     setMode('edit');
-    setEditingOfficerId(officer._id); // Use MongoDB _id
     setShowOfficerPopup(true);
   };
 
   const handleDeleteOfficer = async (officerId) => {
-    if (window.confirm('Are you sure you want to delete this officer?')) {
+    if (window.confirm('Are you sure you want to remove this officer? This action cannot be undone.')) {
       try {
         const token = await getToken();
         await deleteOfficer(officerId, token);
         setOfficers(officers.filter(officer => officer._id !== officerId));
-        console.log('Officer deleted successfully');
-        // You could add a success toast notification here
       } catch (error) {
         console.error('Error deleting officer:', error);
-        // You could add an error toast notification here
       }
     }
   };
@@ -106,7 +107,6 @@ const ManageOfficers = () => {
     try {
       const token = await getToken();
       
-      // Prepare data for submission - convert comma-separated locations to array
       const submissionData = {
         ...formData,
         assignedLocations: formData.assignedLocations
@@ -117,24 +117,18 @@ const ManageOfficers = () => {
       if (mode === 'add') {
         const response = await createOfficer(submissionData, token);
         setOfficers([...officers, response.officer]);
-        console.log('Officer added successfully:', response.officer);
-        // You could add a success toast notification here
       } else {
         const response = await updateOfficer(editingOfficerId, submissionData, token);
         const updatedOfficers = officers.map(officer =>
           officer._id === editingOfficerId ? response.officer : officer
         );
         setOfficers(updatedOfficers);
-        console.log('Officer updated successfully:', response.officer);
-        // You could add a success toast notification here
       }
       
       setShowOfficerPopup(false);
       resetForm();
     } catch (error) {
       console.error('Error saving officer:', error);
-      // You could add an error toast notification here
-      // For now, show the error message in an alert
       if (error.response?.data?.message) {
         alert(`Error: ${error.response.data.message}`);
       } else {
@@ -168,18 +162,20 @@ const ManageOfficers = () => {
     const value = e.target.value;
     setFormData((prevData) => ({
       ...prevData,
-      assignedLocations: value // Store the raw string value
+      assignedLocations: value
     }));
   };
 
+  const inputClass = 'w-full rounded-xl border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-slate-800 p-3 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 outline-none focus:border-emerald-500 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.15)] transition-all duration-300 text-sm';
+
   return (
     <>
-      <div className={`max-w-6xl mx-auto px-4 transition-opacity duration-300 ${showOfficerPopup ? 'opacity-40 blur-sm pointer-events-none' : 'opacity-100'}`}>
+      <div className={`max-w-6xl mx-auto transition-all duration-300 ${showOfficerPopup ? 'opacity-40 blur-sm pointer-events-none' : 'opacity-100'}`}>
         <div className="flex justify-between items-center mb-6">
-          <h1 className='text-2xl text-zinc-800 font-bold'>Manage Officers</h1>
+          <h1 className='font-heading text-2xl text-zinc-950 dark:text-white font-bold'>Manage Officers</h1>
           <button 
             onClick={handleAddOfficer}
-            className='flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors'
+            className='btn-premium flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25'
           >
             <UserPlus className="w-4 h-4" />
             Add Officer
@@ -188,31 +184,40 @@ const ManageOfficers = () => {
 
         {loading ? (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Loading officers...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500 mx-auto"></div>
+            <p className="mt-2 text-zinc-500 dark:text-zinc-400">Loading officers...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+            initial="hidden"
+            animate="show"
+          >
             {officers.map(officer => (
-              <div key={officer._id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-lg transition-shadow">
+              <motion.div
+                key={officer._id}
+                variants={fadeUp}
+                className="group rounded-[24px] border border-white/20 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-zinc-800">{officer.fullName}</h3>
-                    <span className="inline-block capitalize px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                    <h3 className="font-heading text-lg font-bold text-zinc-950 dark:text-white">{officer.fullName}</h3>
+                    <span className="inline-block capitalize px-2.5 py-1 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-xs font-semibold rounded-full mt-1">
                       {officer.role}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={() => handleEditOfficer(officer)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      className="p-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl transition-colors"
                       title="Edit Officer"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteOfficer(officer._id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors"
                       title="Delete Officer"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -220,22 +225,22 @@ const ManageOfficers = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Mail className="w-4 h-4" />
-                    <span>{officer.email}</span>
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+                    <Mail className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="truncate">{officer.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Phone className="w-4 h-4" />
+                  <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+                    <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     <span>{officer.phone}</span>
                   </div>
                   
                   {officer.assignedCategories && officer.assignedCategories.length > 0 && (
-                    <div className="flex items-start gap-2 text-gray-600">
-                      <Tag className="w-4 h-4 mt-0.5" />
+                    <div className="flex items-start gap-2 text-zinc-600 dark:text-zinc-300">
+                      <Tag className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
                       <div className="flex flex-wrap gap-1">
                         {officer.assignedCategories.map((category, index) => (
-                          <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          <span key={index} className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs rounded-lg">
                             {category}
                           </span>
                         ))}
@@ -244,11 +249,11 @@ const ManageOfficers = () => {
                   )}
 
                   {officer.assignedLocations && officer.assignedLocations.length > 0 && (
-                    <div className="flex items-start gap-2 text-gray-600">
-                      <MapPin className="w-4 h-4 mt-0.5" />
+                    <div className="flex items-start gap-2 text-zinc-600 dark:text-zinc-300">
+                      <MapPin className="w-4 h-4 mt-0.5 text-emerald-600 dark:text-emerald-400" />
                       <div className="flex flex-wrap gap-1">
                         {officer.assignedLocations.map((location, index) => (
-                          <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">
+                          <span key={index} className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 text-xs rounded-lg">
                             {location}
                           </span>
                         ))}
@@ -256,19 +261,19 @@ const ManageOfficers = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {officers.length === 0 && !loading && (
           <div className="text-center py-12">
-            <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">No Officers Found</h3>
-            <p className="text-gray-500 mb-4">Get started by adding your first officer to the system.</p>
+            <UserPlus className="w-16 h-16 text-zinc-300 dark:text-zinc-600 mx-auto mb-4" />
+            <h3 className="font-heading text-lg font-bold text-zinc-600 dark:text-zinc-300 mb-2">No Officers Found</h3>
+            <p className="text-zinc-500 dark:text-zinc-400 mb-4">Get started by adding your first officer to the system.</p>
             <button 
               onClick={handleAddOfficer}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+              className="btn-premium bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25"
             >
               Add First Officer
             </button>
@@ -276,155 +281,162 @@ const ManageOfficers = () => {
         )}
       </div>
 
-      {showOfficerPopup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-zinc-800">
-                {mode === 'add' ? 'Add New Officer' : 'Edit Officer'}
-              </h2>
-              <button
-                onClick={() => setShowOfficerPopup(false)}
-                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2" htmlFor="fullName">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  className="w-full border border-zinc-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2" htmlFor="email">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full border border-zinc-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-
-              {/* Phone */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2" htmlFor="phone">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full border border-zinc-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter phone number"
-                />
-              </div>
-
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2" htmlFor="role">
-                  Role
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleInputChange}
-                  className="w-full border border-zinc-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="officer">Officer</option>
-                  <option value="supervisor">Supervisor</option>
-                </select>
-              </div>
-
-              {/* Assigned Categories */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2">
-                  Assigned Categories
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {categories.map((category) => (
-                    <label key={category} className="flex items-center gap-2 p-2 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.assignedCategories.includes(category)}
-                        onChange={() => handleCategoryChange(category)}
-                        className="rounded text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="text-sm text-gray-700">{category}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Assigned Locations */}
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-2" htmlFor="assignedLocations">
-                  Assigned Locations
-                </label>
-                <input
-                  type="text"
-                  id="assignedLocations"
-                  value={formData.assignedLocations}
-                  onChange={handleLocationChange}
-                  className="w-full border border-zinc-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter locations separated by commas (e.g., Downtown, North District)"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Separate multiple locations with commas
-                </p>
-              </div>
-
-              {/* Form Actions */}
-              <div className="flex gap-3 pt-4 border-t">
+      {/* Modal */}
+      <AnimatePresence>
+        {showOfficerPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="rounded-[28px] border border-white/20 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">
+                  {mode === 'add' ? 'Add New Officer' : 'Edit Officer'}
+                </h2>
                 <button
-                  type="button"
                   onClick={() => setShowOfficerPopup(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Saving...
-                    </div>
-                  ) : (
-                    mode === 'add' ? 'Add Officer' : 'Update Officer'
-                  )}
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2" htmlFor="fullName">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2" htmlFor="email">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                    placeholder="Enter email address"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2" htmlFor="phone">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2" htmlFor="role">
+                    Role
+                  </label>
+                  <select
+                    id="role"
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className={inputClass}
+                  >
+                    <option value="officer">Officer</option>
+                    <option value="supervisor">Supervisor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2">
+                    Assigned Categories
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {categories.map((category) => (
+                      <label key={category} className="flex items-center gap-2 p-2.5 border border-zinc-200 dark:border-zinc-700 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/20 cursor-pointer transition-colors duration-200">
+                        <input
+                          type="checkbox"
+                          checked={formData.assignedCategories.includes(category)}
+                          onChange={() => handleCategoryChange(category)}
+                          className="rounded text-emerald-600 focus:ring-emerald-500 border-zinc-300 dark:border-zinc-600"
+                        />
+                        <span className="text-sm text-zinc-700 dark:text-zinc-300">{category}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-200 mb-2" htmlFor="assignedLocations">
+                    Assigned Locations
+                  </label>
+                  <input
+                    type="text"
+                    id="assignedLocations"
+                    value={formData.assignedLocations}
+                    onChange={handleLocationChange}
+                    className={inputClass}
+                    placeholder="Enter locations separated by commas (e.g., Downtown, North District)"
+                  />
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    Separate multiple locations with commas
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowOfficerPopup(false)}
+                    className="btn-premium flex-1 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-slate-800 text-zinc-700 dark:text-zinc-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-premium flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Saving...
+                      </div>
+                    ) : (
+                      mode === 'add' ? 'Add Officer' : 'Update Officer'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

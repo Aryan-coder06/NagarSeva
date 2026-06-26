@@ -1,7 +1,7 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const router = express.Router();
-const cloudinary = require('cloudinary');
+const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const { requireAuth } = require('../middleware/auth');
 
@@ -17,46 +17,66 @@ router.use(fileUpload({
     tempFileDir: '/tmp/'
 }));
 
-router.post('/upload', (req, res) => {
+router.post('/upload', requireAuth(), async (req, res) => {
     try {
         if (!req.files || Object.keys(req.files).length === 0)
             return res.status(400).send({ msg: "No files were uploaded" });
 
-        // console.log(req.files); 
-
         const file = req.files.file;
-        if (file.size > 1024 * 1024) {
+        const isVideo = String(file.mimetype || '').startsWith('video/');
+        const maxSize = isVideo ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
+
+        if (file.size > maxSize) {
             removeTmp(file.tempFilePath);
-            return res.status(400).json({ msg: "Size too large" });
+            return res.status(400).json({ msg: isVideo ? "Video is too large. Use a file under 25 MB." : "Image is too large. Use a file under 10 MB." });
         }
 
-        if (file.mimetype !== 'image/jpeg' && file.mimetype !== 'image/jpg' && file.mimetype !== 'image/png' && file.mimetype !== 'image/webp') {
+        const allowedImageTypes = [
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'image/webp',
+            'image/avif',
+            'image/heic',
+            'image/heif'
+        ];
+        const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+        const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+
+        if (!allowedTypes.includes(file.mimetype)) {
             removeTmp(file.tempFilePath);
-            return res.status(400).json({ msg: "File format is incorrect. Use png or jpg/jpeg type" });
+            return res.status(400).json({ msg: "Unsupported file format. Use JPG, PNG, WEBP, MP4, WEBM, or MOV." });
         }
 
-        cloudinary.v2.uploader.upload(file.tempFilePath, { folder: 'JagrukImageContainer' }, async (err, result) => {
-            if (err) throw err;
+        const result = await cloudinary.uploader.upload(file.tempFilePath, {
+            folder: 'NagarSevaIssueReports',
+            resource_type: 'auto'
+        });
+        removeTmp(file.tempFilePath);
 
-            removeTmp(file.tempFilePath);
-
-            res.json({ public_id: result.public_id, url: result.secure_url });
+        return res.json({
+            public_id: result.public_id,
+            url: result.secure_url,
+            mediaType: isVideo ? 'video' : 'image'
         });
     } catch (err) {
-        res.status(500).json({ msg: err.message });
+        if (req.files?.file?.tempFilePath) {
+            removeTmp(req.files.file.tempFilePath);
+        }
+        console.error('Cloudinary upload failed:', err);
+        res.status(500).json({
+            msg: err?.error?.message || err?.message || 'Image upload failed',
+        });
     }
 });
 
-router.post('/destroy', requireAuth(), (req, res) => {
+router.post('/destroy', requireAuth(), async (req, res) => {
     try {
         const { public_id } = req.body;
         if (!public_id) return res.status(400).json({ msg: "No images Selected" });
 
-        cloudinary.v2.uploader.destroy(public_id, async (err, result) => {
-            if (err) throw err;
-
-            res.json({ msg: "Image Deleted Successfully" });
-        });
+        await cloudinary.uploader.destroy(public_id);
+        return res.json({ msg: "Image Deleted Successfully" });
     } catch (err) {
         return res.status(500).json({ msg: err.message });
     }
@@ -64,7 +84,9 @@ router.post('/destroy', requireAuth(), (req, res) => {
 
 const removeTmp = (path) => {
     fs.unlink(path, err => {
-        if (err) throw err;
+        if (err && err.code !== 'ENOENT') {
+            console.error('Failed to remove temp file:', err.message);
+        }
     });
 }
 

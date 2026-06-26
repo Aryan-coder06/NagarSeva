@@ -1,172 +1,333 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Crosshair, FileImage, Loader2, MapPin, ShieldCheck, Sparkles, Video, WandSparkles } from 'lucide-react';
 import uploadImage from '../utils/uploadImage';
 import { useAuth } from '../contexts/AuthContext';
 import { SignedIn, SignedOut, SignInButton } from '../components/AuthComponents';
-import { createIssue, testAuth } from '../api/Issues';
+import { createIssue } from '../api/Issues';
+
+const steps = [
+  { label: 'Capture evidence', icon: Camera },
+  { label: 'Attach GPS', icon: Crosshair },
+  { label: 'AI triage', icon: Sparkles },
+  { label: 'Track action', icon: ShieldCheck },
+];
+
+const highlights = [
+  'Image and video evidence improves triage quality',
+  'Live GPS prevents vague complaints',
+  'Gemini generates category, severity, urgency, and department',
+  'Submitted reports flow directly into the public action queue',
+];
 
 const ReportIssue = () => {
-    const [fileName, setFileName] = useState('No file chosen');
-    const [loading, setLoading] = useState(false);
-    const { getToken, isSignedIn, user } = useAuth();
+  const [fileName, setFileName] = useState('No photo selected');
+  const [loading, setLoading] = useState(false);
+  const [file, setFile] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [createdIssue, setCreatedIssue] = useState(null);
+  const [formData, setFormData] = useState({ userMessage: '' });
+  const { getToken, user } = useAuth();
 
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    setFileName(selected ? selected.name : 'No media selected');
+    setFile(selected || null);
+    setSuccess(false);
+    setCreatedIssue(null);
+  };
 
-    const [file, setFile] = useState(null);
-    const [formData, setFormData] = useState({
-        userMessage: '',
-        coordinates: null,
-        imageUrl: null,
+  const getCoordinates = () =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Location permission is required to report an issue.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        }),
+        () => reject(new Error('Allow location access so the issue can be mapped.')),
+        { enableHighAccuracy: true, timeout: 12000 }
+      );
     });
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0];
-        setFileName(file ? file.name : 'No file chosen');
-        setFile(file);
-    };
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setSuccess(false);
 
-    const handleFormSubmit = async (e) => {
-        e.preventDefault();
+    try {
+      setLoading(true);
+      const token = await getToken();
+      if (!token) throw new Error('Please sign in to report an issue.');
+      if (!file) throw new Error('Please add a photo or video of the issue.');
 
-        try {
-            setLoading(true);
-            const token = await getToken();
+      const coordinates = await getCoordinates();
+      const mediaData = await uploadImage(file, token);
+      const created = await createIssue({
+        userMessage: formData.userMessage,
+        coordinates,
+        imageUrl: mediaData.url,
+        mediaType: mediaData.mediaType,
+      }, token, user.$id);
 
-            if (!token) {
-                console.error('No token found - user not authenticated');
-                alert('Please sign in to report an issue');
-                return;
-            }
-            // try {
-            //     await testAuth(token);
-            //     console.log('✅ Authentication successful');
-            // } catch (authError) {
-            //     console.error('❌ Authentication failed:', authError);
-            //     alert('Authentication failed. Please sign in again.');
-            //     return;
-            // }
+      setFormData({ userMessage: '' });
+      setFile(null);
+      setFileName('No media selected');
+      setSuccess(true);
+      setCreatedIssue(created);
+    } catch (error) {
+      alert(error.response?.data?.error || error.response?.data?.msg || error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            if (!file) {
-                alert('Please select an image');
-                return;
-            }
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-green-50/20 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-green-950/30">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* ── Header / Info Card ── */}
+        <div className="mb-8 grid gap-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] shadow-xl p-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <motion.div
+            className="space-y-5"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-semibold text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300">
+              <Sparkles className="mr-2 h-4 w-4" />
+              Citizen report workflow
+            </div>
+            <div>
+              <h1 className="font-heading text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
+                Report a local civic issue with evidence, location, and AI triage.
+              </h1>
+              <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+                Add a clear photo and short context. NagarSeva captures location, sends the evidence through Gemini, and places the issue into the verified public action queue.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {highlights.map((item, index) => (
+                <motion.div
+                  key={item}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 + index * 0.1, duration: 0.4 }}
+                  className="flex items-start gap-3 rounded-2xl border border-green-100 bg-green-50/60 p-4 dark:border-green-900/20 dark:bg-green-950/20"
+                >
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-200">{item}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
 
-            // Get location first
-            const coordinates = await new Promise((resolve, reject) => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const { latitude, longitude } = position.coords;
-                            resolve({ latitude, longitude });
-                        },
-                        (error) => {
-                            reject(error);
-                        }
-                    );
-                } else {
-                    alert("Location permission is required to report an issue.");
-                }
-            });
-            console.log('Uploading image...');
-            const imageData = await uploadImage(file, token);
+          {/* ── AI Routing Preview Panel ── */}
+          <motion.div
+            className="rounded-[24px] bg-gradient-to-br from-zinc-950 via-green-950 to-emerald-900 p-5 text-white shadow-2xl"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <div className="rounded-[20px] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <h3 className="font-heading text-sm font-semibold text-green-100">AI routing preview</h3>
+                  <p className="text-xs text-green-200/80">What happens after submit</p>
+                </div>
+                <div className="grid h-10 w-10 place-items-center rounded-2xl bg-white/12">
+                  <WandSparkles className="h-5 w-5 text-green-100" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                {steps.map((step, index) => (
+                  <motion.div
+                    key={step.label}
+                    className="flex items-start gap-3"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + index * 0.1, duration: 0.35 }}
+                  >
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white/12 text-green-100">
+                      <step.icon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white"><span className="font-mono">{index + 1}</span>. {step.label}</p>
+                      <p className="mt-1 text-sm leading-6 text-green-100/85">
+                        {index === 0 && 'Your photo gives the model enough visual evidence to classify the civic problem.'}
+                        {index === 1 && 'Precise coordinates place the case on the public issue map and admin dashboard.'}
+                        {index === 2 && 'Gemini extracts category, severity, urgency, department, and recommended action.'}
+                        {index === 3 && 'The report becomes visible for community validation and authority follow-up.'}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="mt-5 rounded-2xl border border-white/10 bg-white/8 p-4">
+                <div className="flex items-start gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 text-amber-300" />
+                  <p className="text-sm leading-6 text-green-100/90">
+                    Location access is requested only during submission. Without GPS, the report cannot be placed on the civic map or routed accurately.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
 
-            console.log('Creating issue...');
-            const issueData = {
-                userMessage: formData.userMessage,
-                coordinates,
-                imageUrl: imageData.url,
-            };
-            const userId = user.$id;
-            await createIssue(issueData, token, userId);
-
-            // Clear form
-            setFormData({ userMessage: '', coordinates: null, imageUrl: null });
-            setFile(null);
-            setFileName('No file chosen');
-
-            alert("Issue reported successfully!");
-
-        } catch (error) {
-            console.error("Error reporting issue:", error);
-            alert("Failed to report issue: " + (error.response?.data?.error || error.message));
-        }
-        finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="max-w-3xl mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4 text-gray-700">Report Issue</h1>
-            <ol className="mb-6 list-decimal pl-6 text-gray-700">
-                <li>Tap <strong>Take Photo</strong> and capture a photo of the problem using your camera.</li>
-                <li>(Optional) Write a few words to explain what’s wrong.</li>
-                <li>Tap <strong>Submit Report</strong> to send it.</li>
-            </ol>
+        {/* ── Form + Sidebar ── */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_420px]">
+          <section className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] shadow-xl p-6">
+            <div className="mb-8">
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Citizen submission</p>
+              <h2 className="font-heading mt-2 text-3xl font-bold text-zinc-950 dark:text-white">Upload the issue and add field context</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+                Use a well-lit photo and short description with concrete context like road type, nearby landmark, danger level, or time of day.
+              </p>
+            </div>
 
             <SignedOut>
-                <div className="text-center py-12">
-                    <p className="mb-4 text-gray-600">Please sign in to report an issue</p>
-                    <SignInButton mode="modal">
-                        <span className="bg-yellowOrange text-white px-6 py-3 rounded-full hover:bg-amber-500 transition inline-block cursor-pointer">
-                            Sign In
-                        </span>
-                    </SignInButton>
+              <div className="rounded-[24px] border border-dashed border-green-200 bg-green-50/50 p-10 text-center dark:border-green-800 dark:bg-green-950/20">
+                <ShieldCheck className="mx-auto mb-4 h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                <h2 className="font-heading text-xl font-bold text-zinc-950 dark:text-white">Sign in to continue</h2>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Verified accounts make reports easier to track and reduce duplicate submissions.</p>
+                <div className="mt-6">
+                  <SignInButton mode="modal">
+                    <span className="inline-flex rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-semibold text-white hover:from-green-600 hover:to-emerald-700">
+                      Sign in
+                    </span>
+                  </SignInButton>
                 </div>
+              </div>
             </SignedOut>
 
             <SignedIn>
-                <form onSubmit={handleFormSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Take Photo
-                        </label>
-                        <div className="flex flex-col gap-4">
-                            <input
-                                accept="image/*"
-                                type="file"
-                                capture="environment"
-                                id="camera-upload"
-                                className="block"
-                                style={{ display: 'none' }}
-                                onChange={handleFileChange}
-                            />
-                            <label
-                                htmlFor="camera-upload"
-                                className="cursor-pointer bg-gray-100 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-200 transition w-fit"
-                            >
-                                Take Photo
-                            </label>
-                            <span id="file-name" className="text-gray-600 line-clamp-1 text-sm">{fileName}</span>
-                            {file && (
-                                <img
-                                    src={URL.createObjectURL(file)}
-                                    alt="Preview"
-                                    className="max-h-48 rounded-md border border-gray-200"
-                                />
-                            )}
-                        </div>
-                    </div>
-                    <label htmlFor="issue-description" className="block text-sm font-medium text-gray-700 mb-1">
-                        Add Message (optional)
-                    </label>
-                    <textarea
-                        placeholder="Describe the issue..."
-                        value={formData.userMessage}
-                        onChange={(e) => setFormData({ ...formData, userMessage: e.target.value })}
-                        className="w-full h-40 outline-none p-2 border border-gray-300 rounded-md mb-4 resize-none"
+              <form onSubmit={handleFormSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="camera-upload" className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">Issue photo</label>
+                  <div className="mt-2 rounded-[24px] border border-dashed border-green-200 bg-green-50/40 p-4 hover:border-emerald-400 transition-colors duration-300 dark:border-green-900/20 dark:bg-green-950/20">
+                    <input
+                      accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif,.mp4,.webm,.mov"
+                      type="file"
+                      id="camera-upload"
+                      className="sr-only"
+                      onChange={handleFileChange}
                     />
-                    <button
-                        type="submit"
-                        className="bg-yellowOrange cursor-pointer text-white px-6 py-3 rounded-full hover:opacity-80 transition-opacity"
+                    <label htmlFor="camera-upload" className="flex cursor-pointer flex-col items-center justify-center rounded-[20px] bg-white p-6 text-center shadow-sm transition hover:bg-green-50 dark:bg-slate-900 dark:hover:bg-green-950/40">
+                      {file ? (
+                        String(file.type || '').startsWith('video/') ? (
+                          <video src={URL.createObjectURL(file)} controls className="mb-4 max-h-72 w-full rounded-[16px] object-cover" />
+                        ) : (
+                          <img src={URL.createObjectURL(file)} alt="" className="mb-4 max-h-72 w-full rounded-[16px] object-cover" />
+                        )
+                      ) : (
+                        <div className="mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-green-50 text-emerald-600 dark:bg-green-950/40 dark:text-emerald-400">
+                          <div className="flex items-center gap-2">
+                            <FileImage className="h-7 w-7" />
+                            <Video className="h-6 w-6" />
+                          </div>
+                        </div>
+                      )}
+                      <span className="text-sm font-semibold text-zinc-950 dark:text-white">{fileName}</span>
+                      <span className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Tap to use camera or upload an image/video</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="issue-description" className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">What should the civic team know?</label>
+                  <textarea
+                    id="issue-description"
+                    placeholder="Example: This pothole is near a school gate and vehicles swerve suddenly during peak hours."
+                    value={formData.userMessage}
+                    onChange={(e) => setFormData({ ...formData, userMessage: e.target.value })}
+                    className="mt-2 h-36 w-full resize-none rounded-2xl border border-zinc-300 bg-white p-4 text-sm text-zinc-900 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.15)] transition-shadow duration-300 dark:border-zinc-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-950"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-premium inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:from-green-600 hover:to-emerald-700 disabled:cursor-not-allowed disabled:from-zinc-400 disabled:to-zinc-400 sm:w-auto"
+                  >
+                    {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    {loading ? 'Analyzing and submitting' : 'Submit to AI triage'}
+                    {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+                  </button>
+                  <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    Images up to 10 MB and videos up to 25 MB. Use JPG, PNG, WEBP, MP4, WEBM, or MOV.
+                  </p>
+                </div>
+
+                {success && (
+                  <div className="space-y-3">
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.35 }}
+                      className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300"
                     >
-                        {loading ? 'Reporting...' : 'Submit Report'}
-                    </button>
-                    {
-                        loading && <p className="text-gray-600 mt-2">Please wait, this might take few seconds...</p>
-                    }
-                </form>
+                      <CheckCircle2 className="h-5 w-5" />
+                      Report submitted. It will appear in your dashboard after processing.
+                    </motion.div>
+                    {createdIssue?.isLikelyDuplicate && (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                          <div>
+                            <p className="font-semibold">Similar issue detected nearby</p>
+                            <p className="mt-1 leading-6">
+                              This report looks close to {createdIssue.duplicateClusterSize || 1} existing open issue{createdIssue.duplicateClusterSize === 1 ? '' : 's'}.
+                              Community validation on those related cases can now increase their priority faster.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </form>
             </SignedIn>
-        </div>
-    );
+          </section>
+
+        <aside className="space-y-4">
+          <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] shadow-xl p-5">
+            <h2 className="font-heading text-base font-bold text-zinc-950 dark:text-white">What happens after submit</h2>
+            <div className="mt-5 space-y-4">
+              {steps.map((step, index) => (
+                <div key={step.label} className="flex gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                    <step.icon className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-white"><span className="font-mono">{index + 1}</span>. {step.label}</p>
+                    <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                      {index === 0 && 'Images help the AI understand real-world severity.'}
+                      {index === 1 && 'Coordinates make reports map-ready and traceable.'}
+                      {index === 2 && 'Gemini assigns category, priority, and department.'}
+                      {index === 3 && 'Citizens and admins can verify progress.'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-5 dark:border-amber-900/30 dark:bg-amber-950/30">
+            <div className="flex gap-3">
+              <MapPin className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+              <p className="text-sm leading-6 text-amber-900 dark:text-amber-200">
+                Location permission is required only when submitting a report. The map uses it to prevent vague or unactionable complaints.
+              </p>
+            </div>
+          </div>
+        </aside>
+      </div>
+      </div>
+    </main>
+  );
 };
 
-export default ReportIssue
+export default ReportIssue;

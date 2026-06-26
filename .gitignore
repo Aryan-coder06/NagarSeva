@@ -73,6 +73,14 @@ web_modules/
 .env
 .env.*
 !.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# local service account/private key files
+*firebase-adminsdk*.json
+service-account*.json
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -122,6 +130,7 @@ dist
 
 # Firebase cache directory
 .firebase/
+.vercel/
 
 # TernJS port file
 .tern-port
@@ -141,3 +150,12 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# local assets or review files kept outside app source
+/NAGAR LOGO.png

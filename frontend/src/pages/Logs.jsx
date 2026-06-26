@@ -1,12 +1,12 @@
-import React from 'react'
-import LogViewer from '../components/admin/LogViewer'
+import React from 'react';
+import LogViewer from '../components/admin/LogViewer';
 
 const Logs = () => {
   return (
-    <div>
-      <LogViewer/>
-    </div>
-  )
-}
+    <section className="space-y-5">
+      <LogViewer />
+    </section>
+  );
+};
 
-export default Logs
+export default Logs;
