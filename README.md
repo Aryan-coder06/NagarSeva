@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="NAGAR%20LOGO.png" alt="NagarSeva Logo" width="250" />
+  <img src="nagar-logo.png" alt="NagarSeva Logo" width="250" />
 
   # 🏙️ NagarSeva (Jagruk)
   **Smart Community Issue Reporting System**
