@@ -1,106 +1,196 @@
-##**NagarSeva: Community Hero - Hyperlocal Problem Solver**
+<div align="center">
+  <img src="NAGAR%20LOGO.png" alt="NagarSeva Logo" width="250" />
 
+  # 🏙️ NagarSeva (Jagruk)
+  **Smart Community Issue Reporting System**
 
-> A full-stack web application for citizens to report community issues with GPS location, AI categorization, and real-time admin management. Built for smart cities and civic engagement.
+  *Empowering citizens with AI and real-time civic governance.*
+  
+  [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
+  [![React](https://img.shields.io/badge/React-19.1.1-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
+  [![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+  [![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
 
-## Problem Statement
+  [Features](#-core-features) • [Architecture](#-system-architecture) • [Directory Tree](#-directory-structure) • [Installation](#-quick-setup) • [API Reference](#-api-endpoints)
+</div>
 
-Urban communities often face challenges in reporting and managing local issues such as potholes, broken streetlights, and sanitation problems. Traditional reporting methods are inefficient, leading to delayed responses and unresolved issues. There is a need for a streamlined, user-friendly platform that enables citizens to report issues easily while providing administrators with tools to manage and resolve them effectively.
+---
 
-## Solution
+## 🎯 Problem Statement
 
-NagarSeva is a web application that allows citizens to report local issues with GPS-tagged locations and AI-powered categorization. The platform features an interactive map for visualizing reported issues, a dashboard for administrators to track and manage reports, and community voting to prioritize resolutions. Built with React, Node.js, and MongoDB, the system integrates services like Firebase Authentication, Cloudinary for image handling, and Gemini AI for issue categorization.
+Urban communities often face systemic challenges in reporting and managing local issues such as potholes, broken streetlights, and sanitation problems. Traditional reporting methods are fragmented and inefficient, leading to delayed responses, lack of transparency, and unresolved civic decay. There is an urgent need for a streamlined, user-friendly platform that empowers citizens to report issues effortlessly while equipping municipal administrators with robust tools to prioritize and resolve them effectively.
 
-## Features
+## 💡 The Solution: NagarSeva
 
-- **Smart Reporting**: GPS-tagged issue reporting with AI-powered categorization
-- **Interactive Maps**: Leaflet-based geolocation and visualization
-- **Analytics Dashboard**: Charts and statistics for administrators
-- **Community Voting**: Citizens can vote to prioritize issues
-- **Role-based Access**: User, Officer (coming soon), and Admin permissions
-- **Activity Logging**: Complete audit trails
+**NagarSeva** (formerly *Jagruk*) is a comprehensive, full-stack web application that bridges the gap between citizens and municipal governance. 
 
-## Tech Stack
+By leveraging **GPS-tagged locations**, **Cloudinary multimedia handling**, and **Google Gemini AI** for automatic categorization and severity assessment, NagarSeva transforms civic reporting into a seamless 30-second process. The platform features interactive community maps, real-time tracking, administrative dashboards, and a community voting system to crowd-source priority validation.
 
-**Frontend:** React 19.1.1, Vite, Tailwind CSS, Leaflet Maps, Chart.js  
-**Backend:** Node.js, Express.js, MongoDB, Mongoose  
-**Services:** Firebase Authentication, Cloudinary (Images), Gemini AI, OpenCage Geocoding
+---
 
-### System Architecture
+## ✨ Core Features
 
-![System Architecture Diagram](./docs/Jagruk_Diagram.png)
+### 👨‍👩‍👧‍👦 For Citizens
+- **📸 One-Tap Smart Reporting**: Snap a photo of an issue. GPS auto-detects the location while AI analyzes the image to classify the problem and gauge severity.
+- **🗺️ Interactive Live Map**: Visualize all reported issues across your city in real-time with cluster mapping and status pins.
+- **🗳️ Community Voting & Verification**: Upvote critical issues to boost their priority score. Verify municipal resolution claims to build trust.
+- **🏆 Civic Leaderboard**: Earn points for active participation, verified reports, and civic engagement.
+- **🔔 Live Tracking**: Push notifications at every step of the resolution pipeline.
 
-*Overview of the Smart Community Issue Reporting System's technical architecture, showing the React frontend, Node.js backend, MongoDB database, and external service integrations.*
+### 🏛️ For Municipal Authorities
+- **🤖 AI-Powered Triage**: Machine learning automatically routes issues to the correct department, minimizing bureaucratic delays.
+- **📊 Analytics Dashboard**: Comprehensive data visualization of departmental performance, resolution rates, and geographical hotspots.
+- **👮 Officer Assignment**: Dispatch field officers dynamically based on proximity and workload balancing.
+- **🔍 Duplicate Detection**: Advanced algorithms detect duplicate reports within a 250m radius, clustering them to prevent redundant workflows.
+- **📈 Priority Engine**: A dynamic scoring system (0-100) calculates urgency based on AI severity, community votes, age, and duplicate clustering.
 
-## Quick Setup
+---
 
-**Prerequisites:** Node.js 16+, MongoDB, Git
+## 🛠️ Technology Stack
 
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React 19, Vite, Tailwind CSS v4, Framer Motion, Leaflet Maps, Chart.js, Lucide Icons |
+| **Backend** | Node.js, Express 5.1.0, Mongoose, CommonJS |
+| **Database** | MongoDB |
+| **Authentication**| Firebase Auth (Client + Admin SDK custom claims) |
+| **AI Engine** | Google Gemini API (gemini-2.5-flash / fallback chain) |
+| **Media & APIs** | Cloudinary (Images/Video), OpenCage (Reverse Geocoding) |
+
+---
+
+## 📂 Directory Structure
+
+Here is the high-level architecture of the NagarSeva mono-repo:
+
+```text
+NagarSeva/
+├── <b>.github/</b>                 # Issue & PR Templates
+├── <b>docs/</b>                    # Architecture diagrams and Build plans
+├── <b>backend/</b>
+│   ├── <b>controllers/</b>         # Core business logic (IssueControl.js, logControl.js, etc.)
+│   ├── <b>models/</b>              # Mongoose schemas (Issue, Log, Officer, UserProfile)
+│   ├── <b>routes/</b>              # Express API route definitions
+│   ├── <b>middleware/</b>          # RBAC (Auth) and auto-logging middlewares
+│   ├── <b>utils/</b>               # AI integration (analyseImage) & Geocoding
+│   ├── <b>lib/</b>                 # Firebase Admin initialization
+│   ├── <b>scripts/</b>             # Database seeders
+│   ├── index.js             # Express application entry point
+│   └── package.json         # Backend dependencies
+├── <b>frontend/</b>
+│   ├── <b>src/</b>
+│   │   ├── <b>api/</b>             # Axios API service wrappers
+│   │   ├── <b>components/</b>      # Reusable UI components (Public, Admin, Municipal)
+│   │   ├── <b>contexts/</b>        # React Context providers (AuthContext)
+│   │   ├── <b>data/</b>            # Static JSON/JS datasets
+│   │   ├── <b>pages/</b>           # Route-level components (Dashboard, About, VotingSystem)
+│   │   ├── <b>utils/</b>           # Frontend helpers (Cloudinary uploads)
+│   │   ├── <b>assets/</b>          # Media and SVGs
+│   │   ├── App.jsx          # Primary Router configuration
+│   │   └── main.jsx         # React DOM entry
+│   ├── tailwind.config.js   # Tailwind design tokens
+│   └── vite.config.js       # Vite bundler configuration
+└── <b>README.md</b>
+```
+
+---
+
+## 🏗️ System Architecture
+
+![System Architecture](./docs/Jagruk_Diagram.png)
+
+The application utilizes a decoupled client-server architecture. The React frontend handles rich mapping and 3D UI experiences, communicating securely via Bearer tokens (Firebase) to the Express backend. The backend acts as an orchestrator—interfacing with MongoDB for state, Gemini AI for inference, and OpenCage for spatial intelligence.
+
+---
+
+## 🚀 Quick Setup
+
+### Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB (Local or Atlas)
+- Firebase Project (Web & Service Account)
+- Cloudinary Account
+- Google Gemini API Key
+
+### 1. Backend Configuration
 ```bash
-# Clone and setup backend
+# Clone the repository
 git clone https://github.com/tilakjain619/Smart-Community-Issue-Reporting-System.git
 cd Smart-Community-Issue-Reporting-System/backend
-npm install
-cp .env.example .env  # Configure your API keys
-npm run dev
 
-# Setup frontend (new terminal)
+# Install dependencies
+npm install
+
+# Setup environment variables
+cp .env.example .env
+```
+*Populate `.env` with your MongoDB URI, Firebase Service Account keys, Cloudinary credentials, Gemini API key, and OpenCage key.*
+
+```bash
+# Start the backend development server
+npm run dev
+```
+
+### 2. Frontend Configuration
+```bash
+# Open a new terminal and navigate to frontend
 cd ../frontend
+
+# Install dependencies
 npm install
-cp .env.example .env  # Configure endpoints
+
+# Setup environment variables
+cp .env.example .env
+```
+*Populate `.env` with your Vite backend URL and Firebase Web configuration.*
+
+```bash
+# Start the frontend development server
 npm run dev
 ```
 
-### Environment Variables
+Access the **Frontend** at `http://localhost:5174` (or `5173`) and the **Backend API** at `http://localhost:3000`.
 
-Setup your `.env` files with the following variables:
+---
 
-**Backend (.env):**
-```env
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/smart-community
-FIREBASE_PROJECT_ID=your_firebase_project_id
-FIREBASE_CLIENT_EMAIL=your_firebase_admin_client_email
-FIREBASE_PRIVATE_KEY=your_firebase_admin_private_key
-CLOUD_NAME=your_cloudinary_cloud_name
-CLOUD_API_KEY=your_cloudinary_api_key
-CLOUD_API_SECRET=your_cloudinary_api_secret
-GEMINI_API_KEY=your_gemini_api_key
-OPENCAGE_API_KEY=your_opencage_api_key
-```
+## 📡 API Endpoints (Backend)
 
-**Frontend (.env):**
-```env
-VITE_BACKEND_URL=http://localhost:3000
-VITE_FIREBASE_API_KEY=your_firebase_web_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_firebase_app_id
-VITE_ADMIN_EMAILS=admin@example.com
-```
+NagarSeva provides a robust RESTful API secured by Firebase Custom Claims.
 
-Access: Frontend at `http://localhost:5173`, Backend at `http://localhost:3000`
+### Issues (`/api/issues`)
+- `GET /api/issues` - Fetch public issues (supports pagination, geospatial filtering)
+- `GET /api/issues/all` - Fetch all issues (Municipal access)
+- `POST /api/issues` - Submit a new report (Triggers Gemini AI)
+- `PATCH /api/issues/:id/status` - Update issue resolution status (Municipal)
+- `POST /api/issues/:id/vote` - Upvote or verify an issue (Citizen)
 
-## API Endpoints
+### Analytics & Logs (`/api/logs`)
+- `GET /api/logs` - Fetch audit logs for system events
+- `GET /api/logs/stats` - Fetch aggregate metrics for dashboards
 
-- `GET /api/issues` - Get all issues
-- `POST /api/issues` - Create new issue (requires auth)
-- `PUT /api/issues/:id/status` - Update status (requires auth)
-- `GET /api/issues/search` - Search/filter issues
-- `GET /api/logs` - Get activity logs (admin)
-- `POST /api/upload` - Upload images (requires auth)
+### Users & Officers (`/api/profile`, `/api/officers`)
+- `GET /api/profile/me` - Fetch current user's profile and civic score
+- `POST /api/officers` - Register a new municipal field officer
 
-## Contributing
+---
 
+## 🤝 Contributing
+
+We welcome contributions to make NagarSeva better! 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/name`
-3. Make your changes and test
-4. Submit a pull request
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+Please review our [CONTRIBUTING.md](./CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) for detailed guidelines.
 
-## License
+---
 
-MIT License - see [LICENSE](LICENSE) file.
+## 📜 License
+
+Distributed under the MIT License. See [`LICENSE`](./LICENSE) for more information.
+
+<div align="center">
+  <i>Built with passion for smarter, cleaner cities.</i>
+</div>
