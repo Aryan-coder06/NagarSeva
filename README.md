@@ -1,5 +1,5 @@
-**#NagarSeva Community Hero - Hyperlocal Problem Solver
-**
+##**NagarSeva: Community Hero - Hyperlocal Problem Solver**
+
 
 > A full-stack web application for citizens to report community issues with GPS location, AI categorization, and real-time admin management. Built for smart cities and civic engagement.
 
