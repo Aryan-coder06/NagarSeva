@@ -16,6 +16,7 @@ import {
   User,
   UserRound,
   Vote,
+  Trophy,
   X,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -24,8 +25,9 @@ import logo from '../../assets/logo.png';
 
 const navLinks = [
   { title: 'About', href: '/about', icon: Info },
-  { title: 'Contact Us', href: '/contact', icon: Phone },
-  { title: 'Voting System', href: '/voting-system', icon: Vote },
+  { title: 'Contact', href: '/contact', icon: Phone },
+  { title: 'Voting', href: '/voting-system', icon: Vote },
+  { title: 'Leaderboard', href: '/leaderboard', icon: Trophy },
   { title: 'Issue Map', href: '/user-map', icon: Map },
   { title: 'Feedback', href: '/feedback', icon: MessageSquare },
 ];
@@ -63,15 +65,20 @@ export default function PublicNavbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-white/70 backdrop-blur-2xl shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:bg-slate-950/70 dark:shadow-none transition-colors duration-300">
       <div className="container mx-auto px-4 lg:px-6">
-        <div className="flex h-16 items-center justify-between">
-          <button onClick={() => navigate('/')} className="group flex items-center gap-3">
+        <div className="flex h-20 items-center justify-between gap-3 xl:gap-4">
+          <button onClick={() => navigate('/')} className="group flex shrink-0 items-center gap-3">
             <div className="relative">
-              <img src={logo} alt="NagarSeva logo" className="h-9 w-auto transition-transform duration-300 group-hover:scale-105" />
+              <img src={logo} alt="NagarSeva logo" className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 md:h-11 lg:h-[2.85rem]" />
               <div className="absolute inset-0 rounded-full bg-green-500/20 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
+            </div>
+            <div className="hidden sm:block">
+              <div className="bg-gradient-to-r from-sky-600 via-cyan-500 to-emerald-500 bg-clip-text text-2xl font-black tracking-tight text-transparent transition-transform duration-300 group-hover:scale-[1.02] lg:text-[1.9rem]">
+                NagarSeva
+              </div>
             </div>
           </button>
 
-          <nav className="hidden items-center gap-1 lg:flex">
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 xl:gap-1 lg:flex">
             {navLinks.map((navItem) => {
               const Icon = navItem.icon;
               const isActive = location.pathname === navItem.href;
@@ -79,7 +86,7 @@ export default function PublicNavbar() {
                 <Link
                   key={navItem.title}
                   to={navItem.href}
-                  className={`group relative flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
+                  className={`group relative flex shrink-0 items-center gap-2 whitespace-nowrap overflow-hidden rounded-xl px-2.5 py-2.5 text-[0.95rem] font-medium transition-all duration-300 xl:px-3 ${
                     isActive
                       ? 'border border-green-200/50 bg-white/60 text-green-700 backdrop-blur-lg dark:border-green-700/50 dark:bg-white/10 dark:text-green-300'
                       : 'text-gray-600 hover:bg-green-50 hover:text-green-600 dark:text-gray-300 dark:hover:bg-green-950/50 dark:hover:text-green-400'
@@ -106,10 +113,10 @@ export default function PublicNavbar() {
             )}
           </button>
 
-          <div className="hidden items-center gap-5 lg:flex">
+          <div className="hidden shrink-0 items-center gap-3 xl:gap-4 lg:flex">
             <button
               onClick={() => navigate('/report')}
-              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-red-600 hover:to-red-700"
+              className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-red-600 hover:to-red-700"
               title="Report urgent civic issue"
               aria-label="Report urgent civic issue"
             >
@@ -124,10 +131,14 @@ export default function PublicNavbar() {
             <div className="relative" ref={rightDropdownRef}>
               <button
                 onClick={() => setRightDropdownOpen((open) => !open)}
-                className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-700"
+                className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-700"
                 aria-label="Open user menu"
               >
-                <User className="h-5 w-5" />
+                {profile?.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={user?.name || 'Profile'} className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-5 w-5" />
+                )}
               </button>
 
               <AnimatePresence>
@@ -177,8 +188,19 @@ export default function PublicNavbar() {
                       <>
                         <div className="my-2 border-t border-green-100 dark:border-green-900/20" />
                         <div className="rounded-xl bg-green-50 px-4 py-3 text-sm dark:bg-green-950/40">
-                          <div className="font-semibold text-zinc-900 dark:text-white">{user?.name || 'Citizen account'}</div>
-                          <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user?.email}</div>
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-cyan-600 text-sm font-bold text-white">
+                              {profile?.avatarUrl ? (
+                                <img src={profile.avatarUrl} alt={user?.name || 'Profile'} className="h-full w-full object-cover" />
+                              ) : (
+                                ((user?.name || user?.email || 'NA').match(/\b\w/g) || []).slice(0, 2).join('').toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold text-zinc-900 dark:text-white">{user?.name || 'Citizen account'}</div>
+                              <div className="truncate text-xs text-zinc-500 dark:text-zinc-400">{user?.email}</div>
+                            </div>
+                          </div>
                         </div>
                         <button
                           onClick={() => {

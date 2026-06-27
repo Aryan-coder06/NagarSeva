@@ -61,6 +61,11 @@ const userProfileSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    avatarUrl: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     portalType: {
       type: String,
       enum: ['citizen', 'municipality'],

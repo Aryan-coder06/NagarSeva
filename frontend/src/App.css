@@ -357,6 +357,101 @@ html.dark .noise-overlay {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fire-flicker {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.9;
+  }
+  25% {
+    transform: scaleY(1.15) scaleX(0.92);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(0.88) scaleX(1.08);
+    opacity: 0.85;
+  }
+  75% {
+    transform: scaleY(1.08) scaleX(0.95);
+    opacity: 0.95;
+  }
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-28px) translateX(var(--ember-drift, 4px)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes fire-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(251, 146, 60, 0.3), 0 0 24px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.5), 0 0 40px rgba(239, 68, 68, 0.25), 0 0 60px rgba(234, 88, 12, 0.1);
+  }
+}
+
+@keyframes heat-cell-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes badge-shine {
+  0% { left: -100%; }
+  50%, 100% { left: 200%; }
+}
+
+/* Fire animation utilities */
+.animate-fire-flicker {
+  animation: fire-flicker 0.8s ease-in-out infinite;
+}
+
+.animate-ember-rise {
+  animation: ember-rise 1.2s ease-out infinite;
+}
+
+.animate-fire-glow-pulse {
+  animation: fire-glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-heat-cell-in {
+  animation: heat-cell-in 0.4s var(--ease-out-expo) both;
+}
+
+/* Badge shine overlay for earned badges */
+.badge-earned-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-earned-shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: badge-shine 4s ease-in-out infinite;
+}
+
 /* Animation utility classes */
 .animate-fade-in {
   animation: fade-in var(--duration-normal) var(--ease-out-expo) both;

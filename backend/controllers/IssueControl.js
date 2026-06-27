@@ -274,6 +274,33 @@ const applyAuthenticityMetrics = (issue) => {
     return metrics;
 };
 
+const attachReporterNames = async (issues) => {
+    const normalized = Array.isArray(issues) ? issues : [issues];
+    const missingUserIds = [...new Set(
+        normalized
+            .filter((issue) => issue?.userId && !issue?.reporterName)
+            .map((issue) => issue.userId)
+    )];
+
+    if (!missingUserIds.length) return issues;
+
+    const profiles = await UserProfile.find(
+        { firebaseUid: { $in: missingUserIds } },
+        { firebaseUid: 1, fullName: 1, avatarUrl: 1 }
+    ).lean();
+    const profileMap = new Map(profiles.map((profile) => [profile.firebaseUid, profile]));
+
+    normalized.forEach((issue) => {
+        if (issue?.userId && profileMap.has(issue.userId)) {
+            const reporter = profileMap.get(issue.userId);
+            if (!issue?.reporterName) issue.reporterName = reporter.fullName;
+            if (!issue?.reporterAvatarUrl) issue.reporterAvatarUrl = reporter.avatarUrl || '';
+        }
+    });
+
+    return issues;
+};
+
 // Create a new issue
 const createIssue = async (req, res) => {
     try {
@@ -300,6 +327,9 @@ const createIssue = async (req, res) => {
             return res.status(400).json({ error: 'Image or video is required' });
         }
         
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: userId }, { fullName: 1, avatarUrl: 1 }).lean();
+        const reporterName = reporterProfile?.fullName || req.auth?.name || 'Citizen';
+        const reporterAvatarUrl = reporterProfile?.avatarUrl || '';
         const isVideo = mediaType === 'video';
         const analysis = isVideo
             ? {
@@ -327,6 +357,8 @@ const createIssue = async (req, res) => {
         console.log('💾 Creating issue in database...');
         const newIssue = await Issue.create({
             userId,
+            reporterName,
+            reporterAvatarUrl,
             userMessage: userMessage || '',
             category,
             issueType: analysis.issueType || '',
@@ -389,6 +421,7 @@ const getAllIssues = async (req, res) => {
         }
 
         const issues = await Issue.find(municipalScope.filter).sort({ createdAt: -1 });
+        await attachReporterNames(issues);
         if (municipalScope.scope) {
             console.log(`Municipal scoped issue count: ${issues.length}`);
         }
@@ -411,6 +444,7 @@ const getUsersIssues = async (req, res) => {
         }
         
         const issues = await Issue.find({ userId }).sort({ createdAt: -1 });
+        await attachReporterNames(issues);
         res.status(200).json(issues);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -448,6 +482,7 @@ const getIssues = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit));
+    await attachReporterNames(issues);
 
     // Get total count for pagination info
     const total = await Issue.countDocuments(filter);
@@ -646,6 +681,7 @@ const searchIssues = async (req, res) => {
                 { state: { $regex: query, $options: 'i' } }
             ]
         });
+        await attachReporterNames(issues);
         res.status(200).json(issues);
     } catch (error) {
         res.status(500).json({ error: error.message });

@@ -59,6 +59,7 @@ const MapUI = ({
   selectedIssue = null,
   onSelectIssue = () => {},
   mapView = 'street',
+  openDetailsOnMarkerClick = false,
 }) => {
   const center = [20.5937, 78.9629];
   const tileLayer = mapView === 'satellite'
@@ -92,7 +93,7 @@ const MapUI = ({
               key={issue._id}
               position={[coordinates.latitude, coordinates.longitude]}
               icon={markerIcon(issue.category, issue.status)}
-              eventHandlers={{ click: () => onSelectIssue(issue) }}
+              eventHandlers={openDetailsOnMarkerClick ? { click: () => onSelectIssue(issue) } : undefined}
             >
               <Popup>
                 <div className="w-72">
@@ -105,13 +106,16 @@ const MapUI = ({
                       {category.label}
                     </span>
                   </div>
-                  <strong className="block text-sm text-zinc-950">{issue.title}</strong>
+                  <strong className="block text-sm text-zinc-950 line-clamp-2">{issue.title}</strong>
                   <p className="text-xs text-zinc-600">{issue.city || 'Unknown area'} {issue.state ? `, ${issue.state}` : ''}</p>
                   {issue.userMessage && <p className="mt-2 text-xs leading-5 text-zinc-600 line-clamp-3">{issue.userMessage}</p>}
                   {issue.priorityScore && <p className="mt-2 text-xs font-semibold text-emerald-700">Priority score: {issue.priorityScore}</p>}
                   <button
                     type="button"
-                    onClick={() => onSelectIssue(issue)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectIssue(issue);
+                    }}
                     className="mt-3 inline-flex items-center text-xs font-semibold text-zinc-900"
                   >
                     <MapPin className="mr-1 h-3.5 w-3.5 text-emerald-600" />

@@ -1,7 +1,7 @@
 <div align="center">
   <img src="nagar-logo.png" alt="NagarSeva Logo" width="250" />
 
-  # 🏙️ NagarSeva (Jagruk)
+  # 🏙️ NagarSeva
   **Smart Community Issue Reporting System**
 
   *Empowering citizens with AI and real-time civic governance.*
@@ -11,7 +11,7 @@
   [![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
   [![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
 
-  [Features](#-core-features) • [Architecture](#-system-architecture) • [Directory Tree](#-directory-structure) • [Installation](#-quick-setup) • [API Reference](#-api-endpoints)
+  [Features](#-core-features) • [Architecture](#-system-architecture) • [Deployment](#-deployment) • [Directory Tree](#-directory-structure) • [Installation](#-quick-setup) • [API Reference](#-api-endpoints)
 </div>
 
 ---
@@ -22,27 +22,28 @@ Urban communities often face systemic challenges in reporting and managing local
 
 ## 💡 The Solution: NagarSeva
 
-**NagarSeva** (formerly *Jagruk*) is a comprehensive, full-stack web application that bridges the gap between citizens and municipal governance. 
+**NagarSeva** is a comprehensive, full-stack web application that bridges the gap between citizens and municipal governance.
 
-By leveraging **GPS-tagged locations**, **Cloudinary multimedia handling**, and **Google Gemini AI** for automatic categorization and severity assessment, NagarSeva transforms civic reporting into a seamless 30-second process. The platform features interactive community maps, real-time tracking, administrative dashboards, and a community voting system to crowd-source priority validation.
+By leveraging **GPS-tagged locations**, **Cloudinary multimedia handling**, and **Google Gemini AI** for automatic categorization and severity assessment, NagarSeva transforms civic reporting into a seamless report-to-resolution workflow. The platform features interactive community maps, live status tracking, administrative dashboards, and a community authenticity system that helps crowd-source priority and trust.
 
 ---
 
 ## ✨ Core Features
 
 ### 👨‍👩‍👧‍👦 For Citizens
-- **📸 One-Tap Smart Reporting**: Snap a photo of an issue. GPS auto-detects the location while AI analyzes the image to classify the problem and gauge severity.
-- **🗺️ Interactive Live Map**: Visualize all reported issues across your city in real-time with cluster mapping and status pins.
-- **🗳️ Community Voting & Verification**: Upvote critical issues to boost their priority score. Verify municipal resolution claims to build trust.
-- **🏆 Civic Leaderboard**: Earn points for active participation, verified reports, and civic engagement.
-- **🔔 Live Tracking**: Push notifications at every step of the resolution pipeline.
+- **📸 Image and Video Reporting**: Upload an image or video. GPS auto-detects the location while AI analyzes the report to classify the issue and gauge severity.
+- **🗺️ Interactive Live Map**: Visualize reported issues across your city with status pins, category filters, and locality-aware civic context.
+- **🗳️ Community Authenticity & Verification**: Citizens can confirm, flag false, or mark duplicates. Trust score and verification state are derived from structured community input.
+- **🏆 Civic Leaderboard**: Track citizen impact based on issues reported, validated, and ultimately resolved by municipal teams.
+- **🔄 Live Tracking**: Follow the issue from reporting to municipal review, assignment, escalation, and resolution.
 
 ### 🏛️ For Municipal Authorities
-- **🤖 AI-Powered Triage**: Machine learning automatically routes issues to the correct department, minimizing bureaucratic delays.
-- **📊 Analytics Dashboard**: Comprehensive data visualization of departmental performance, resolution rates, and geographical hotspots.
-- **👮 Officer Assignment**: Dispatch field officers dynamically based on proximity and workload balancing.
-- **🔍 Duplicate Detection**: Advanced algorithms detect duplicate reports within a 250m radius, clustering them to prevent redundant workflows.
-- **📈 Priority Engine**: A dynamic scoring system (0-100) calculates urgency based on AI severity, community votes, age, and duplicate clustering.
+- **🤖 AI-Powered Triage**: Gemini classifies category, issue type, severity, urgency, suggested department, and operational summaries.
+- **📊 Analytics Dashboard**: Visualize departmental performance, resolution rates, and municipal issue mix with scoped dashboards.
+- **👮 Officer Assignment & Escalation**: Dispatch field officers, set due dates, escalate stuck cases, and maintain an action timeline.
+- **🔍 Duplicate Detection**: Detect duplicate reports within a 250m radius to reduce redundant workflows and consolidate evidence.
+- **📈 Priority Engine**: Priority is derived from AI severity, urgency, community confirmation, issue age, and duplicate clustering.
+- **✅ Authenticity Decision Layer**: Community signals shape trust, but municipality makes the final approve / reject / duplicate decision.
 
 ---
 
@@ -53,9 +54,11 @@ By leveraging **GPS-tagged locations**, **Cloudinary multimedia handling**, and 
 | **Frontend** | React 19, Vite, Tailwind CSS v4, Framer Motion, Leaflet Maps, Chart.js, Lucide Icons |
 | **Backend** | Node.js, Express 5.1.0, Mongoose, CommonJS |
 | **Database** | MongoDB |
-| **Authentication**| Firebase Auth (Client + Admin SDK custom claims) |
-| **AI Engine** | Google Gemini API (gemini-2.5-flash / fallback chain) |
+| **Authentication**| Firebase Auth (Client SDK + Admin token verification) |
+| **AI Engine** | Google Gemini API (`gemini-2.5-flash-lite` with `gemini-2.5-flash` fallback) |
+| **Speech & AI Assist** | Sarvam Speech-to-Text, Local Luna assistant |
 | **Media & APIs** | Cloudinary (Images/Video), OpenCage (Reverse Geocoding) |
+| **Deployment Target** | Google Cloud Run (backend), Firebase Hosting (frontend) |
 
 ---
 
@@ -99,7 +102,66 @@ NagarSeva/
 
 ![System Architecture](./docs/Jagruk_Diagram.png)
 
-The application utilizes a decoupled client-server architecture. The React frontend handles rich mapping and 3D UI experiences, communicating securely via Bearer tokens (Firebase) to the Express backend. The backend acts as an orchestrator—interfacing with MongoDB for state, Gemini AI for inference, and OpenCage for spatial intelligence.
+The application utilizes a decoupled client-server architecture. The React frontend handles mapping, citizen and municipal portal UX, and authenticated issue workflows, communicating via Firebase-backed Bearer tokens to the Express backend. The backend orchestrates MongoDB persistence, Gemini AI inference, Cloudinary media uploads, and OpenCage geospatial enrichment.
+
+---
+
+## 🧠 AI Workflow
+
+Every report moves through a structured AI-assisted pipeline:
+
+1. **Citizen submits report** with image/video + location
+2. **Gemini triage** generates category, issue type, severity, urgency, department, and summaries
+3. **Duplicate detection** checks nearby unresolved reports
+4. **Community authenticity** collects confirm / false / duplicate votes
+5. **Trust score** and verification status are derived from community signals
+6. **Municipal decision** approves, rejects, or marks duplicate
+7. **Assignment and escalation** drive officer-side resolution
+
+This is the current agentic core of NagarSeva.
+
+---
+
+## ☁️ Expansion Roadmap
+
+These are the next justified upgrades for a larger production version of NagarSeva:
+
+### LangGraph + LangChain
+- **LangChain** for model/tool abstractions and structured civic tools
+- **LangGraph** for a durable civic workflow graph:
+  - triage
+  - duplicate check
+  - trust evaluation
+  - routing
+  - municipal action recommendations
+
+This is the right path if we want stronger long-running agent workflows, human-in-the-loop review, and richer observability.
+
+### Google Cloud / GCP
+- **Cloud Run** for backend deployment and scale-out
+- **Vertex AI / Gemini on Google Cloud** for enterprise-grade model routing
+- **Cloud Storage** for media instead of third-party object storage
+- **BigQuery** for hotspot analytics and predictive civic insights
+
+We have not claimed these as implemented yet. They are the practical next platform upgrades.
+
+---
+
+## 🚢 Deployment
+
+The current recommended production deployment path is:
+
+- **Frontend**: Firebase Hosting
+- **Backend**: Google Cloud Run
+- **Auth**: Firebase Authentication
+- **AI**: Gemini API via Google AI Studio
+- **Database**: MongoDB Atlas
+
+Detailed deployment instructions live in:
+
+- [docs/GCP_DEPLOYMENT.md](./docs/GCP_DEPLOYMENT.md)
+
+This keeps the current codebase intact while satisfying the hackathon requirement that the deployed app run on Google Cloud.
 
 ---
 
@@ -115,8 +177,8 @@ The application utilizes a decoupled client-server architecture. The React front
 ### 1. Backend Configuration
 ```bash
 # Clone the repository
-git clone https://github.com/tilakjain619/Smart-Community-Issue-Reporting-System.git
-cd Smart-Community-Issue-Reporting-System/backend
+git clone https://github.com/Aryan-coder06/NagarSeva.git
+cd NagarSeva/backend
 
 # Install dependencies
 npm install
@@ -149,20 +211,23 @@ cp .env.example .env
 npm run dev
 ```
 
-Access the **Frontend** at `http://localhost:5174` (or `5173`) and the **Backend API** at `http://localhost:3000`.
+Access the **Frontend** at `http://localhost:5173` (or the next Vite port if occupied) and the **Backend API** at `http://localhost:3000`.
 
 ---
 
 ## 📡 API Endpoints (Backend)
 
-NagarSeva provides a robust RESTful API secured by Firebase Custom Claims.
+NagarSeva provides a RESTful API secured by Firebase bearer token verification.
 
 ### Issues (`/api/issues`)
 - `GET /api/issues` - Fetch public issues (supports pagination, geospatial filtering)
 - `GET /api/issues/all` - Fetch all issues (Municipal access)
 - `POST /api/issues` - Submit a new report (Triggers Gemini AI)
 - `PATCH /api/issues/:id/status` - Update issue resolution status (Municipal)
-- `POST /api/issues/:id/vote` - Upvote or verify an issue (Citizen)
+- `POST /api/issues/:id/vote` - Cast authenticity vote: confirm / false / duplicate
+- `PATCH /api/issues/:id/decision` - Municipal final authenticity decision
+- `PATCH /api/issues/:id/assign` - Assign issue to an officer
+- `PATCH /api/issues/:id/escalate` - Escalate an issue in municipal workflow
 
 ### Analytics & Logs (`/api/logs`)
 - `GET /api/logs` - Fetch audit logs for system events
@@ -171,6 +236,18 @@ NagarSeva provides a robust RESTful API secured by Firebase Custom Claims.
 ### Users & Officers (`/api/profile`, `/api/officers`)
 - `GET /api/profile/me` - Fetch current user's profile and civic score
 - `POST /api/officers` - Register a new municipal field officer
+
+### AI Utilities (`/api/ai`)
+- `POST /api/ai/transcribe` - Transcribe citizen audio input with Sarvam STT
+
+---
+
+## 🔗 Reference Docs
+
+- [LangGraph overview](https://docs.langchain.com/oss/javascript/langgraph/overview)
+- [LangChain overview](https://docs.langchain.com/oss/javascript/langchain/overview)
+- [Google Cloud Run Node.js quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-nodejs-service)
+- [Google Cloud Vertex AI Node.js reference](https://cloud.google.com/nodejs/docs/reference/vertexai/latest)
 
 ---
 

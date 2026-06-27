@@ -13,6 +13,10 @@ process.on('uncaughtException', (error) => {
 
 const app = express();
 const port = process.env.PORT || 3000;
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Check if Firebase is configured
 if (!process.env.FIREBASE_PROJECT_ID) {
@@ -28,7 +32,15 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-com
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+}));
 
 app.get('/', (req, res) => {
   res.send('Welcome to NagarSeva');
@@ -38,8 +50,27 @@ app.get('/', (req, res) => {
 app.use('/api', require('./routes/issue'));
 app.use('/api', require('./routes/logs'));
 app.use("/api", require('./routes/upload'));
+app.use('/api', require('./routes/ai'));
 app.use('/api', require('./routes/officer'));
 app.use('/api', require('./routes/profile'));
+
+app.use((err, req, res, next) => {
+  if (err?.message === 'Unexpected end of form') {
+    console.warn('Multipart upload failed: incomplete form data received.');
+    return res.status(400).json({
+      error: 'Upload was incomplete. Please retry the file upload.',
+    });
+  }
+
+  if (err) {
+    console.error('Unhandled express error:', err);
+    return res.status(500).json({
+      error: 'Unexpected server error.',
+    });
+  }
+
+  next();
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

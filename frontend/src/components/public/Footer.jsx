@@ -42,31 +42,31 @@ const Footer = () => {
   const socialLinks = [
     {
       name: "GitHub",
-      href: "https://github.com/tilakjain619/Smart-Community-Issue-Reporting-System",
+      href: "https://github.com/Aryan-coder06/NagarSeva",
       icon: Github,
       description: "View source code",
       color:
         "hover:bg-gray-900 dark:hover:bg-gray-100 hover:text-white dark:hover:text-gray-900",
     },
     {
-      name: "Twitter",
-      href: "https://twitter.com/civix",
+      name: "X",
+      href: "https://x.com/aryan_2806",
       icon: Twitter,
-      description: "Follow us on Twitter",
+      description: "Follow us on X",
       color: "hover:bg-blue-400 hover:text-white",
     },
     {
       name: "LinkedIn",
-      href: "https://linkedin.com/company/civix",
+      href: "https://www.linkedin.com/in/aryan-saini-0ba9ab322/",
       icon: Linkedin,
       description: "Connect on LinkedIn",
       color: "hover:bg-blue-600 hover:text-white",
     },
     {
       name: "YouTube",
-      href: "https://youtube.com/c/civix",
+      href: "https://youtube.com/",
       icon: Youtube,
-      description: "Watch our videos",
+      description: "YouTube channel",
       color: "hover:bg-red-600 hover:text-white",
     },
   ];
@@ -137,10 +137,10 @@ const Footer = () => {
           description: "Terms of service",
         },
         {
-          name: "Voting System",
-          href: "/voting-system",
+          name: "Leaderboard",
+          href: "/leaderboard",
           icon: UsersIcon,
-          description: "Track community validation and resolved impact",
+          description: "Track citizen impact from resolved issues and validation",
         },
       ],
     },

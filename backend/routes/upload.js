@@ -11,13 +11,12 @@ cloudinary.config({
     api_secret: process.env.CLOUD_API_SECRET
 });
 
-// Middleware to handle file uploads
-router.use(fileUpload({
+const uploadMiddleware = fileUpload({
     useTempFiles: true,
     tempFileDir: '/tmp/'
-}));
+});
 
-router.post('/upload', requireAuth(), async (req, res) => {
+router.post('/upload', requireAuth(), uploadMiddleware, async (req, res) => {
     try {
         if (!req.files || Object.keys(req.files).length === 0)
             return res.status(400).send({ msg: "No files were uploaded" });

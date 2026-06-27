@@ -1001,7 +1001,7 @@ function About() {
                   </motion.div>
                   <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
                     <Link
-                      to="/voting-system"
+                      to="/leaderboard"
                       className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/[0.08] px-6 py-3.5 text-sm font-semibold text-slate-200 transition-all duration-300"
                     >
                       <Award className="h-4 w-4" />

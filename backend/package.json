@@ -20,7 +20,8 @@
     "express-fileupload": "^1.5.2",
     "firebase-admin": "^13.10.0",
     "mongoose": "^8.19.1",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "sarvamai": "^1.1.7"
   },
   "type": "commonjs"
 }

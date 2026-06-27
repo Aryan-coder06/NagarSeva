@@ -18,6 +18,7 @@ import Privacy from './pages/public/Privacy';
 import Terms from './pages/public/Terms';
 import Resources from './pages/public/Resources';
 import VotingSystem from './pages/public/VotingSystem';
+import Leaderboard from './pages/public/Leaderboard';
 import PublicNavbar from './components/public/PublicNavbar';
 import MunicipalNavbar from './components/municipal/MunicipalNavbar';
 import Footer from './components/public/Footer';
@@ -62,6 +63,7 @@ const AnimatedRoutes = () => {
         <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
         <Route path="/resources" element={<PageTransition><Resources /></PageTransition>} />
         <Route path="/voting-system" element={<PageTransition><VotingSystem /></PageTransition>} />
+        <Route path="/leaderboard" element={<PageTransition><Leaderboard /></PageTransition>} />
         <Route path="/user-map" element={<PageTransition><CommunityFeed /></PageTransition>} />
         <Route path="/community" element={<PageTransition><CommunityFeed /></PageTransition>} />
         <Route path="/report" element={<PageTransition><ReportIssue /></PageTransition>} />

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Crosshair, FileImage, Loader2, MapPin, ShieldCheck, Sparkles, Video, WandSparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Camera, CheckCircle2, Crosshair, FileImage, Loader2, MapPin, Mic, ShieldCheck, Sparkles, Square, Video, WandSparkles } from 'lucide-react';
 import uploadImage from '../utils/uploadImage';
 import { useAuth } from '../contexts/AuthContext';
 import { SignedIn, SignedOut, SignInButton } from '../components/AuthComponents';
-import { createIssue } from '../api/Issues';
+import { createIssue, transcribeIssueAudio } from '../api/Issues';
 
 const steps = [
   { label: 'Capture evidence', icon: Camera },
@@ -20,6 +20,22 @@ const highlights = [
   'Submitted reports flow directly into the public action queue',
 ];
 
+const speechLanguages = [
+  { value: 'unknown', label: 'Auto detect' },
+  { value: 'en-IN', label: 'English (India)' },
+  { value: 'hi-IN', label: 'Hindi' },
+  { value: 'bn-IN', label: 'Bengali' },
+  { value: 'gu-IN', label: 'Gujarati' },
+  { value: 'kn-IN', label: 'Kannada' },
+  { value: 'ml-IN', label: 'Malayalam' },
+  { value: 'mr-IN', label: 'Marathi' },
+  { value: 'od-IN', label: 'Odia' },
+  { value: 'pa-IN', label: 'Punjabi' },
+  { value: 'ta-IN', label: 'Tamil' },
+  { value: 'te-IN', label: 'Telugu' },
+  { value: 'ur-IN', label: 'Urdu' },
+];
+
 const ReportIssue = () => {
   const [fileName, setFileName] = useState('No photo selected');
   const [loading, setLoading] = useState(false);
@@ -27,7 +43,13 @@ const ReportIssue = () => {
   const [success, setSuccess] = useState(false);
   const [createdIssue, setCreatedIssue] = useState(null);
   const [formData, setFormData] = useState({ userMessage: '' });
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [speechLanguage, setSpeechLanguage] = useState('unknown');
   const { getToken, user } = useAuth();
+  const recorderRef = useRef(null);
+  const streamRef = useRef(null);
+  const chunksRef = useRef([]);
 
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
@@ -53,6 +75,85 @@ const ReportIssue = () => {
         { enableHighAccuracy: true, timeout: 12000 }
       );
     });
+
+  const stopAudioTracks = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+        throw new Error('Voice capture is not supported in this browser.');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+
+      const supportedMimeType =
+        ['audio/webm;codecs=opus', 'audio/webm'].find((type) => MediaRecorder.isTypeSupported(type)) || '';
+      const recorder = supportedMimeType
+        ? new MediaRecorder(stream, { mimeType: supportedMimeType })
+        : new MediaRecorder(stream);
+
+      recorder.ondataavailable = (event) => {
+        if (event.data?.size) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        try {
+          const token = await getToken();
+          if (!token) throw new Error('Please sign in to use voice transcription.');
+
+          setTranscribing(true);
+
+          const mimeType = recorder.mimeType || 'audio/webm';
+          const extension = mimeType.includes('webm') ? 'webm' : 'wav';
+          const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+          const audioFile = new File([audioBlob], `nagarseva-report.${extension}`, { type: mimeType });
+          const result = await transcribeIssueAudio(audioFile, token, speechLanguage);
+          const transcript = String(result?.transcript || '').trim();
+
+          if (!transcript) {
+            throw new Error('No speech was detected. Try again with clearer audio.');
+          }
+
+          setFormData((current) => ({
+            ...current,
+            userMessage: current.userMessage
+              ? `${current.userMessage.trim()}\n${transcript}`
+              : transcript,
+          }));
+        } catch (error) {
+          alert(error.response?.data?.error || error.message);
+        } finally {
+          setTranscribing(false);
+          chunksRef.current = [];
+          stopAudioTracks();
+        }
+      };
+
+      recorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+    } catch (error) {
+      stopAudioTracks();
+      alert(error.message || 'Unable to start voice recording.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && recording) {
+      recorderRef.current.stop();
+      recorderRef.current = null;
+      setRecording(false);
+    }
+  };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -237,7 +338,43 @@ const ReportIssue = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="issue-description" className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">What should the civic team know?</label>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <label htmlFor="issue-description" className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">What should the civic team know?</label>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={speechLanguage}
+                        onChange={(e) => setSpeechLanguage(e.target.value)}
+                        disabled={recording || transcribing || loading}
+                        className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-slate-900 dark:text-zinc-200 dark:focus:ring-emerald-950"
+                        aria-label="Speech transcription language"
+                      >
+                        {speechLanguages.map((language) => (
+                          <option key={language.value} value={language.value}>
+                            {language.label}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={recording ? stopRecording : startRecording}
+                        disabled={transcribing || loading}
+                        className={`inline-flex items-center rounded-xl px-4 py-2 text-xs font-semibold shadow-sm transition ${
+                          recording
+                            ? 'bg-rose-600 text-white hover:bg-rose-700'
+                            : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300 dark:hover:bg-emerald-950/50'
+                        } disabled:cursor-not-allowed disabled:opacity-60`}
+                      >
+                        {recording ? <Square className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
+                        {recording ? 'Stop recording' : 'Speak instead'}
+                      </button>
+                      {transcribing && (
+                        <span className="inline-flex items-center rounded-xl bg-zinc-100 px-3 py-2 text-xs font-medium text-zinc-700 dark:bg-slate-800 dark:text-zinc-200">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Transcribing with Sarvam
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   <textarea
                     id="issue-description"
                     placeholder="Example: This pothole is near a school gate and vehicles swerve suddenly during peak hours."
@@ -245,6 +382,9 @@ const ReportIssue = () => {
                     onChange={(e) => setFormData({ ...formData, userMessage: e.target.value })}
                     className="mt-2 h-36 w-full resize-none rounded-2xl border border-zinc-300 bg-white p-4 text-sm text-zinc-900 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 focus:shadow-[0_0_0_3px_rgba(16,185,129,0.15)] transition-shadow duration-300 dark:border-zinc-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-950"
                   />
+                  <p className="mt-2 text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+                    Voice notes are transcribed with Sarvam AI and inserted into this field. Pick a language when known, or leave auto-detect for mixed civic reporting.
+                  </p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

@@ -41,6 +41,7 @@ const sanitizeProfilePayload = (body, auth) => {
     email: (body.email || auth.email || '').trim().toLowerCase(),
     fullName: (body.fullName || auth.name || auth.email || '').trim(),
     phone: (body.phone || '').trim(),
+    avatarUrl: (body.avatarUrl || '').trim(),
     portalType,
     country: (body.country || 'India').trim(),
     citizenProfile: {

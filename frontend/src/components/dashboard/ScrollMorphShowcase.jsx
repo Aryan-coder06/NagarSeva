@@ -2,24 +2,29 @@ import { useMemo, useRef, useState } from 'react';
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { ArrowUpRight, MapPinned, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { demoIssues, getStatusConfig } from '../../data/demoIssues';
+import heroPothole from '../../assets/hero_pothole.jpg';
+import heroReporting from '../../assets/hero_reporting.jpg';
+import heroStreetlight from '../../assets/hero_streetlight.jpg';
+import transparency from '../../assets/transparency.jpg';
 
 const spotlightIssues = demoIssues.slice(0, 4).map((issue, index) => ({
   ...issue,
   index,
+  imageUrl: [heroPothole, heroReporting, heroStreetlight, transparency][index],
   message:
     index === 0
-      ? 'Road safety starts with visibility. Citizen evidence, AI triage, and community validation help move a dangerous spot out of the backlog.'
+      ? 'A clear report can push a dangerous road defect into action.'
       : index === 1
-        ? 'Sanitation issues spread fast when they stay invisible. Local photos and precise locality details make them harder to ignore.'
+        ? 'Local proof makes sanitation failures harder to ignore.'
         : index === 2
-          ? 'Lighting failures become safety failures after dark. The platform keeps a verifiable history from first report to closure.'
-          : 'Water and drainage complaints need regional context. Repeated reports across wards become a pattern, not just a one-off complaint.',
+          ? 'Night-safety reports stay visible until closure.'
+          : 'Repeated water complaints become a pattern, not a one-off post.',
 }));
 
 const stats = [
-  { label: 'India-first local context', value: 'Ward, city, and locality aware', icon: MapPinned },
-  { label: 'Citizen verification loop', value: 'Votes, signals, and resolution trail', icon: Users },
-  { label: 'Municipal action layer', value: 'AI triage to accountable action', icon: ShieldCheck },
+  { label: 'India-first', value: 'City and locality aware', icon: MapPinned },
+  { label: 'Citizen loop', value: 'Votes and support trail', icon: Users },
+  { label: 'Action layer', value: 'AI triage to closure', icon: ShieldCheck },
 ];
 
 export default function ScrollMorphShowcase() {
@@ -50,7 +55,7 @@ export default function ScrollMorphShowcase() {
             Scroll through real civic pain points and see how one report becomes public action.
           </h2>
           <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-            This citizen dashboard is not just a list of tickets. It is a visual operating layer for residents, volunteers, and municipal teams working on the same city.
+            A report, a vote, and a municipal action trail. That is the loop.
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -162,7 +167,7 @@ export default function ScrollMorphShowcase() {
                     <span className="text-xs font-semibold uppercase tracking-[0.16em]">Active spotlight</span>
                   </div>
                   <h3 className="font-heading mt-3 text-2xl font-bold text-white">{activeIssue.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-zinc-200">{activeIssue.userMessage}</p>
+                  <p className="mt-3 text-sm leading-7 text-zinc-200">{activeIssue.message}</p>
                   <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-zinc-100">
                     <span className="font-semibold text-white">Recommended action:</span> {activeIssue.recommendedAction}
                   </div>

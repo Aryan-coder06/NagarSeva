@@ -8,7 +8,6 @@ const uploadImage = async (file, token) => {
 
     const res = await axios.post(`${BASE_API_URL}/api/upload`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
       }
     });

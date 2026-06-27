@@ -1,8 +1,7 @@
 const DEFAULT_MODEL_CANDIDATES = [
     process.env.GEMINI_MODEL,
+    'gemini-2.5-flash-lite',
     'gemini-2.5-flash',
-    'gemini-2.0-flash',
-    'gemini-1.5-flash',
 ].filter(Boolean);
 
 async function callGeminiModel({ model, prompt, mimeType, imageBase64 }) {
@@ -84,6 +83,7 @@ Only respond with the raw JSON object. Do not use Markdown formatting or triple 
         if (response.ok && message) {
             try {
                 const result = JSON.parse(message);
+                console.info(`Gemini triage succeeded with model: ${model}`);
                 return result;
             } catch (error) {
                 console.error(`Error parsing Gemini response for model ${model}:`, error, body);

@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const issueSchema = new mongoose.Schema({
   userId: { type: String},
+  reporterName: { type: String, trim: true, default: '' },
+  reporterAvatarUrl: { type: String, trim: true, default: '' },
   title: { type: String, required: true, trim: true },
   userMessage: { type: String, trim: true },
   status: { 

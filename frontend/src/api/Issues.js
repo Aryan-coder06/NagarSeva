@@ -189,3 +189,21 @@ export const searchIssues = async (query, token) => {
         throw error;
     }
 };
+
+export const transcribeIssueAudio = async (file, token, languageCode = 'unknown') => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('languageCode', languageCode);
+
+        const res = await axios.post(`${BASE_API_URL}/api/ai/transcribe`, formData, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        return res.data;
+    } catch (error) {
+        console.error("Error transcribing audio:", error.response?.data || error.message);
+        throw error;
+    }
+};
