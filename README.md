@@ -2,7 +2,7 @@
   <img src="nagar-logo.png" alt="NagarSeva Logo" width="250" />
 
   # 🏙️ NagarSeva
-  **Smart Community Issue Reporting System**
+  **Aapki Awaaz, Shaher ka Vikas.**
 
   *Empowering citizens with AI and real-time civic governance.*
   
