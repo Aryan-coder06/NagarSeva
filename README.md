@@ -19,6 +19,15 @@
 ## 🎯 Problem Statement
 
 Urban communities often face systemic challenges in reporting and managing local issues such as potholes, broken streetlights, and sanitation problems. Traditional reporting methods are fragmented and inefficient, leading to delayed responses, lack of transparency, and unresolved civic decay. There is an urgent need for a streamlined, user-friendly platform that empowers citizens to report issues effortlessly while equipping municipal administrators with robust tools to prioritize and resolve them effectively.
+Background.
+Communities frequently face issues such as potholes, water leakages, damaged streetlights, waste management concerns, and public infrastructure challenges. Reporting these issues is often fragmented, difficult to track, and lacks transparency.
+
+## ⚔️ Challenge
+
+Build a platform that enables citizens to identify, report, validate, track, and resolve community issues through collaboration, data, and intelligent automation.
+The solution should encourage transparency, accountability, and community participation.
+
+
 
 ## 💡 The Solution: NagarSeva
 
