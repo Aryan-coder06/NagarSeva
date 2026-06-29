@@ -36,6 +36,19 @@ const municipalityProfileSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const notificationPreferencesSchema = new mongoose.Schema(
+  {
+    inApp: { type: Boolean, default: true },
+    email: { type: Boolean, default: true },
+    issueCreated: { type: Boolean, default: true },
+    statusChanged: { type: Boolean, default: true },
+    assignmentAlerts: { type: Boolean, default: true },
+    authenticityAlerts: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const userProfileSchema = new mongoose.Schema(
   {
     firebaseUid: {
@@ -82,6 +95,10 @@ const userProfileSchema = new mongoose.Schema(
     },
     municipalityProfile: {
       type: municipalityProfileSchema,
+      default: () => ({}),
+    },
+    notificationPreferences: {
+      type: notificationPreferencesSchema,
       default: () => ({}),
     },
     isProfileComplete: {

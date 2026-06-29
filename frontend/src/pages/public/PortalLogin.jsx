@@ -45,7 +45,19 @@ export default function PortalLogin({ portalType }) {
       return null;
     }
 
-    if (!nextProfile.isProfileComplete) {
+    const hasPortalData = portalType === 'municipality'
+      ? Boolean(
+          nextProfile.municipalityProfile?.organizationName ||
+          nextProfile.municipalityProfile?.department ||
+          nextProfile.municipalityProfile?.city
+        )
+      : Boolean(
+          nextProfile.citizenProfile?.state ||
+          nextProfile.citizenProfile?.city ||
+          nextProfile.citizenProfile?.locality
+        );
+
+    if (!nextProfile.isProfileComplete && !hasPortalData) {
       return portalType === 'municipality' ? '/onboarding/municipality' : '/onboarding/citizen';
     }
 

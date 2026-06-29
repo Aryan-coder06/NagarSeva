@@ -190,7 +190,7 @@ const ReportIssue = () => {
     <main className="min-h-screen bg-gradient-to-br from-green-50/20 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-800 dark:to-green-950/30">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* ── Header / Info Card ── */}
-        <div className="mb-8 grid gap-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] shadow-xl p-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="mb-8 grid gap-5 bg-white/70 p-4 shadow-xl backdrop-blur-xl border border-white/20 rounded-[24px] dark:border-white/10 dark:bg-slate-900/70 sm:p-6 lg:grid-cols-[1.2fr_0.8fr] lg:gap-6 lg:rounded-[28px]">
           <motion.div
             className="space-y-5"
             initial={{ opacity: 0, y: 20 }}
@@ -202,10 +202,10 @@ const ReportIssue = () => {
               Citizen report workflow
             </div>
             <div>
-              <h1 className="font-heading text-4xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-5xl">
+              <h1 className="font-heading text-3xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-4xl lg:text-5xl">
                 Report a local civic issue with evidence, location, and AI triage.
               </h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-zinc-600 dark:text-zinc-300 sm:text-base">
                 Add a clear photo and short context. NagarSeva captures location, sends the evidence through Gemini, and places the issue into the verified public action queue.
               </p>
             </div>
@@ -227,12 +227,12 @@ const ReportIssue = () => {
 
           {/* ── AI Routing Preview Panel ── */}
           <motion.div
-            className="rounded-[24px] bg-gradient-to-br from-zinc-950 via-green-950 to-emerald-900 p-5 text-white shadow-2xl"
+            className="rounded-[22px] bg-gradient-to-br from-zinc-950 via-green-950 to-emerald-900 p-4 text-white shadow-2xl sm:rounded-[24px] sm:p-5"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
           >
-            <div className="rounded-[20px] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+            <div className="rounded-[18px] border border-white/10 bg-white/8 p-4 backdrop-blur-sm sm:rounded-[20px] sm:p-5">
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <h3 className="font-heading text-sm font-semibold text-green-100">AI routing preview</h3>
@@ -279,11 +279,11 @@ const ReportIssue = () => {
         </div>
 
         {/* ── Form + Sidebar ── */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_420px]">
-          <section className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] shadow-xl p-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_420px] lg:gap-8">
+          <section className="bg-white/70 p-4 shadow-xl backdrop-blur-xl border border-white/20 rounded-[24px] dark:border-white/10 dark:bg-slate-900/70 sm:p-6 sm:rounded-[28px]">
             <div className="mb-8">
               <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Citizen submission</p>
-              <h2 className="font-heading mt-2 text-3xl font-bold text-zinc-950 dark:text-white">Upload the issue and add field context</h2>
+              <h2 className="font-heading mt-2 text-2xl font-bold text-zinc-950 dark:text-white sm:text-3xl">Upload the issue and add field context</h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 dark:text-zinc-300">
                 Use a well-lit photo and short description with concrete context like road type, nearby landmark, danger level, or time of day.
               </p>
@@ -308,7 +308,7 @@ const ReportIssue = () => {
               <form onSubmit={handleFormSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="camera-upload" className="block text-sm font-semibold text-zinc-800 dark:text-zinc-200">Issue photo</label>
-                  <div className="mt-2 rounded-[24px] border border-dashed border-green-200 bg-green-50/40 p-4 hover:border-emerald-400 transition-colors duration-300 dark:border-green-900/20 dark:bg-green-950/20">
+                  <div className="mt-2 rounded-[20px] border border-dashed border-green-200 bg-green-50/40 p-3 transition-colors duration-300 hover:border-emerald-400 dark:border-green-900/20 dark:bg-green-950/20 sm:rounded-[24px] sm:p-4">
                     <input
                       accept="image/*,video/*,.jpg,.jpeg,.png,.webp,.avif,.heic,.heif,.mp4,.webm,.mov"
                       type="file"
@@ -316,7 +316,7 @@ const ReportIssue = () => {
                       className="sr-only"
                       onChange={handleFileChange}
                     />
-                    <label htmlFor="camera-upload" className="flex cursor-pointer flex-col items-center justify-center rounded-[20px] bg-white p-6 text-center shadow-sm transition hover:bg-green-50 dark:bg-slate-900 dark:hover:bg-green-950/40">
+                    <label htmlFor="camera-upload" className="flex cursor-pointer flex-col items-center justify-center rounded-[18px] bg-white p-4 text-center shadow-sm transition hover:bg-green-50 dark:bg-slate-900 dark:hover:bg-green-950/40 sm:rounded-[20px] sm:p-6">
                       {file ? (
                         String(file.type || '').startsWith('video/') ? (
                           <video src={URL.createObjectURL(file)} controls className="mb-4 max-h-72 w-full rounded-[16px] object-cover" />
@@ -345,7 +345,7 @@ const ReportIssue = () => {
                         value={speechLanguage}
                         onChange={(e) => setSpeechLanguage(e.target.value)}
                         disabled={recording || transcribing || loading}
-                        className="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-slate-900 dark:text-zinc-200 dark:focus:ring-emerald-950"
+                        className="min-w-0 flex-1 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-xs font-medium text-zinc-700 shadow-sm outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 dark:border-zinc-700 dark:bg-slate-900 dark:text-zinc-200 dark:focus:ring-emerald-950 sm:min-w-[180px] sm:flex-none"
                         aria-label="Speech transcription language"
                       >
                         {speechLanguages.map((language) => (

@@ -159,3 +159,6 @@ Thumbs.db
 
 # local assets or review files kept outside app source
 /NAGAR LOGO.png
+
+# local deployment env files
+backend/cloudrun.env.yaml

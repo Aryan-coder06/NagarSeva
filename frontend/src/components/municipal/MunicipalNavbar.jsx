@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { BarChart3, Building2, ClipboardList, LogOut, Menu, ShieldCheck, Users, X } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationBell from '../shared/NotificationBell';
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Overview', icon: BarChart3 },
@@ -58,6 +59,7 @@ export default function MunicipalNavbar() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <NotificationBell dark />
           <div className="rounded-2xl border border-zinc-200 bg-white/80 px-4 py-2 dark:border-zinc-800 dark:bg-slate-900/80">
             <p className="text-sm font-semibold text-zinc-950 dark:text-white">
               {profile?.municipalityProfile?.designation || 'Municipal role'}
@@ -94,6 +96,9 @@ export default function MunicipalNavbar() {
                 {item.label}
               </NavLink>
             ))}
+            <div className="pt-1">
+              <NotificationBell dark />
+            </div>
           </div>
           <button
             onClick={handleLogout}

@@ -11,12 +11,12 @@
 
 /* ── Page Root ── */
 .about-page-root {
-  --about-bg: #070d1a;
-  --about-surface: rgba(255, 255, 255, 0.03);
-  --about-glass: rgba(255, 255, 255, 0.04);
-  --about-glass-border: rgba(255, 255, 255, 0.07);
-  --about-text: #e2e8f0;
-  --about-text-muted: #94a3b8;
+  --about-bg: #f5f7fb;
+  --about-surface: rgba(255, 255, 255, 0.84);
+  --about-glass: rgba(255, 255, 255, 0.72);
+  --about-glass-border: rgba(148, 163, 184, 0.24);
+  --about-text: #0f172a;
+  --about-text-muted: #475569;
   --about-text-dim: #64748b;
   --about-accent-1: #10b981;
   --about-accent-2: #06b6d4;
@@ -28,6 +28,16 @@
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+}
+
+.dark .about-page-root {
+  --about-bg: #070d1a;
+  --about-surface: rgba(255, 255, 255, 0.03);
+  --about-glass: rgba(255, 255, 255, 0.04);
+  --about-glass-border: rgba(255, 255, 255, 0.07);
+  --about-text: #e2e8f0;
+  --about-text-muted: #94a3b8;
+  --about-text-dim: #64748b;
 }
 
 /* ── Background Layers ── */
@@ -57,6 +67,18 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: 80px 80px;
   opacity: 0.6;
+}
+
+.dark .about-bg-layers::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+}
+
+.about-bg-layers::after {
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
 }
 
 /* ── Floating 3D Geometric Shapes ── */

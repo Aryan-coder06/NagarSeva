@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Switch from './DarkModeToggle';
+import NotificationBell from '../shared/NotificationBell';
 import logo from '../../assets/logo.png';
 
 const navLinks = [
@@ -71,8 +72,8 @@ export default function PublicNavbar() {
               <img src={logo} alt="NagarSeva logo" className="h-10 w-auto transition-transform duration-300 group-hover:scale-105 md:h-11 lg:h-[2.85rem]" />
               <div className="absolute inset-0 rounded-full bg-green-500/20 opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
             </div>
-            <div className="hidden sm:block">
-              <div className="bg-gradient-to-r from-sky-600 via-cyan-500 to-emerald-500 bg-clip-text text-2xl font-black tracking-tight text-transparent transition-transform duration-300 group-hover:scale-[1.02] lg:text-[1.9rem]">
+            <div className="block min-w-0">
+              <div className="truncate bg-gradient-to-r from-sky-600 via-cyan-500 to-emerald-500 bg-clip-text text-lg font-black tracking-tight text-transparent transition-transform duration-300 group-hover:scale-[1.02] sm:text-2xl lg:text-[1.9rem]">
                 NagarSeva
               </div>
             </div>
@@ -99,19 +100,33 @@ export default function PublicNavbar() {
             })}
           </nav>
 
-          <button
-            id="mobile-nav-toggle"
-            className="group flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-colors duration-300 hover:bg-green-100 dark:bg-green-950/50 dark:hover:bg-green-900/50 lg:hidden"
-            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
-            aria-expanded={mobileMenuOpen}
-            onClick={() => setMobileMenuOpen((open) => !open)}
-          >
-            {mobileMenuOpen ? (
-              <X className="h-5 w-5 text-green-600 dark:text-green-400" />
-            ) : (
-              <Menu className="h-5 w-5 text-green-600 dark:text-green-400" />
-            )}
-          </button>
+          <div className="flex shrink-0 items-center gap-2 lg:hidden">
+            <button
+              onClick={() => navigate('/report')}
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-3 text-xs font-semibold text-white shadow-lg"
+              aria-label="Report civic issue"
+            >
+              <AlertTriangle className="mr-1.5 h-4 w-4" />
+              Report
+            </button>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-colors duration-300 hover:bg-green-100 dark:bg-green-950/50 dark:hover:bg-green-900/50">
+              <Switch />
+            </div>
+            <NotificationBell dark={document.documentElement.classList.contains('dark')} />
+            <button
+              id="mobile-nav-toggle"
+              className="group flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-colors duration-300 hover:bg-green-100 dark:bg-green-950/50 dark:hover:bg-green-900/50"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5 text-green-600 dark:text-green-400" />
+              ) : (
+                <Menu className="h-5 w-5 text-green-600 dark:text-green-400" />
+              )}
+            </button>
+          </div>
 
           <div className="hidden shrink-0 items-center gap-3 xl:gap-4 lg:flex">
             <button
@@ -127,6 +142,8 @@ export default function PublicNavbar() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 transition-colors duration-300 hover:bg-green-100 dark:bg-green-950/50 dark:hover:bg-green-900/50">
               <Switch />
             </div>
+
+            <NotificationBell dark={document.documentElement.classList.contains('dark')} />
 
             <div className="relative" ref={rightDropdownRef}>
               <button
@@ -260,9 +277,17 @@ export default function PublicNavbar() {
             </div>
             <div className="mt-3 border-t border-zinc-200/50 pt-3 dark:border-zinc-800/50">
               {isSignedIn ? (
-                <button onClick={handleLogout} className="btn-premium w-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950">
-                  Sign Out
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleNav(isMunicipalUser ? '/admin/dashboard' : '/dashboard')}
+                    className="btn-premium w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                  >
+                    {isMunicipalUser ? 'Municipal Dashboard' : 'Citizen Dashboard'}
+                  </button>
+                  <button onClick={handleLogout} className="btn-premium w-full bg-zinc-950 text-white dark:bg-white dark:text-zinc-950">
+                    Sign Out
+                  </button>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => handleNav('/citizen/login')} className="btn-premium bg-gradient-to-r from-emerald-500 to-teal-600 text-white">

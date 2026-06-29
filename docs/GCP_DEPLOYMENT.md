@@ -65,19 +65,21 @@ Required production secrets:
 
 ## 4. Deploy backend to Cloud Run
 
-From the repo root:
+From the `backend/` directory:
 
 ```bash
-gcloud run deploy nagarseva-backend \
-  --source backend \
+cd backend
+gcloud run deploy hackathon-app \
+  --source . \
   --region asia-south1 \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --set-env-vars GEMINI_API_KEY=your_gemini_key
 ```
 
-After the first deploy, set production env vars:
+After the first deploy, set the rest of the production env vars:
 
 ```bash
-gcloud run services update nagarseva-backend \
+gcloud run services update hackathon-app \
   --region asia-south1 \
   --update-env-vars FRONTEND_ORIGIN=https://your-frontend.web.app,MONGODB_URI=your_mongodb_uri,FIREBASE_PROJECT_ID=your_project_id,FIREBASE_CLIENT_EMAIL=your_client_email,FIREBASE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n',GEMINI_API_KEY=your_gemini_key,GEMINI_MODEL=gemini-2.5-flash-lite,SARVAM_API_KEY=your_sarvam_key,SARVAM_STT_MODEL=saaras:v3,SARVAM_STT_MODE=transcribe,SARVAM_STT_LANGUAGE=unknown,CLOUD_NAME=your_cloud_name,CLOUD_API_KEY=your_cloud_api_key,CLOUD_API_SECRET=your_cloud_api_secret,OPENCAGE_API_KEY=your_opencage_key
 ```
@@ -86,6 +88,7 @@ Notes:
 
 - Use **single quotes** around `FIREBASE_PRIVATE_KEY` in shell commands.
 - For a cleaner production setup, move secrets into **Secret Manager** after the first working deploy.
+- If `gcloud` returns **Billing account is not open**, stop there. Billing must be enabled in Google Cloud Console before continuing.
 
 ## 5. Prepare frontend production env
 

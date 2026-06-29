@@ -5,6 +5,7 @@ import {
   Activity,
   CheckCircle2,
   Crown,
+  Gift,
   Heart,
   Sparkles,
   ThumbsUp,
@@ -54,11 +55,10 @@ const getInitials = (label) => {
 };
 
 const getReward = (rank) => {
-  if (rank === 1) return 500;
-  if (rank === 2) return 300;
-  if (rank === 3) return 150;
-  if (rank <= 5) return 100;
-  return 50;
+  if (rank === 1) return 10000;
+  if (rank === 2) return 5000;
+  if (rank === 3) return 2000;
+  return 100;
 };
 
 const getHeatmapCellClass = (count, max) => {
@@ -258,6 +258,59 @@ const AnimatedNumber = ({ value, className }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
   return <span className={className}>{displayed.toLocaleString()}</span>;
+};
+
+const MobileCitizenCard = ({ citizen, rank, index }) => {
+  const grad = avatarGradients[(index + 5) % avatarGradients.length];
+  const tier = getCitizenLevel(getTierMetrics(citizen));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 + index * 0.06, duration: 0.45 }}
+      className="rounded-2xl border border-zinc-200/80 bg-white/85 p-4 shadow-lg backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.03]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100 text-sm font-bold text-zinc-800 dark:bg-white/[0.08] dark:text-white">
+            #{rank}
+          </div>
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+            style={{ background: `linear-gradient(135deg, ${grad[0]}, ${grad[1]})` }}
+          >
+            {getInitials(citizen.label)}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-zinc-950 dark:text-white">{citizen.label}</div>
+            <div className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] ${tier.chipClass}`}>
+              {tier.name}
+            </div>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-zinc-500 dark:text-slate-400">Reward</div>
+          <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Rs {getReward(rank).toLocaleString()}</div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-3">
+        <div className="rounded-xl bg-zinc-100/80 p-3 dark:bg-white/[0.04]">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-slate-500">Reports</div>
+          <div className="mt-1 text-lg font-bold text-zinc-950 dark:text-white">{citizen.postedCount}</div>
+        </div>
+        <div className="rounded-xl bg-zinc-100/80 p-3 dark:bg-white/[0.04]">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-slate-500">Resolved</div>
+          <div className="mt-1 text-lg font-bold text-zinc-950 dark:text-white">{citizen.resolvedCount}</div>
+        </div>
+        <div className="rounded-xl bg-zinc-100/80 p-3 dark:bg-white/[0.04]">
+          <div className="text-[10px] uppercase tracking-[0.14em] text-zinc-500 dark:text-slate-500">Score</div>
+          <div className="mt-1 text-lg font-bold text-zinc-950 dark:text-white">{citizen.civicScore}</div>
+        </div>
+      </div>
+    </motion.div>
+  );
 };
 
 /* ── Countdown flip unit ── */
@@ -667,6 +720,12 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('monthly');
   const timeLeft = useCountdown();
+  const [sloganIndex, setSloganIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setSloganIndex((prev) => (prev + 1) % civicSlogans.length), 4000);
+    return () => clearInterval(id);
+  }, []);
 
   const podiumRef = useRef(null);
   const podiumTilt = useTilt3D(podiumRef);
@@ -767,20 +826,20 @@ export default function Leaderboard() {
 
   /* ══ RENDER ══ */
   return (
-    <main className="voting-leaderboard-page min-h-screen overflow-hidden relative" style={{ perspective: '1200px' }}>
+    <main className="voting-leaderboard-page relative min-h-screen overflow-hidden bg-gradient-to-b from-zinc-100 via-white to-emerald-50/40 dark:from-[#070d1a] dark:via-[#081020] dark:to-[#070d1a]" style={{ perspective: '1200px' }}>
       {/* ── Layered backgrounds ── */}
-      <div className="absolute inset-0 bg-[#070d1a]" />
+      <div className="absolute inset-0 bg-transparent dark:bg-[#070d1a]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_60%_at_50%_-25%,rgba(16,185,129,0.14),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_50%_40%_at_85%_100%,rgba(6,182,212,0.08),transparent_60%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_10%_80%,rgba(139,92,246,0.06),transparent_60%)]" />
 
       {/* Decorative arc behind podium */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[500px] rounded-b-[50%] bg-gradient-to-b from-slate-800/30 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute left-1/2 top-0 h-[380px] w-[150%] -translate-x-1/2 rounded-b-[50%] bg-gradient-to-b from-slate-300/30 to-transparent dark:from-slate-800/30 sm:h-[500px]" />
 
       {/* Animated grid overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+      <div className="absolute inset-0 pointer-events-none opacity-[0.05] dark:opacity-[0.03]"
         style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(rgba(15,23,42,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(15,23,42,0.05) 1px, transparent 1px)`,
           backgroundSize: '60px 60px',
         }}
       />
@@ -807,13 +866,13 @@ export default function Leaderboard() {
           transition={{ delay: 0.1, duration: 0.6 }}
           className="flex justify-center mb-12"
         >
-          <div className="relative flex rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+          <div className="relative flex rounded-full border border-zinc-200 bg-white/80 p-1.5 shadow-[0_8px_32px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
             {['daily', 'monthly'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`relative z-10 px-9 py-2.5 rounded-full text-sm font-semibold transition-all duration-300
-                  ${activeTab === tab ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  ${activeTab === tab ? 'text-white' : 'text-zinc-500 hover:text-zinc-900 dark:text-slate-400 dark:hover:text-slate-200'}`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -857,7 +916,13 @@ export default function Leaderboard() {
               ))}
             </div>
           ) : top3.length >= 3 ? (
-            <div className="flex items-end justify-center gap-3 sm:gap-6 md:gap-10">
+            <>
+              <div className="grid gap-4 md:hidden">
+                {top3.map((citizen, i) => (
+                  <MobileCitizenCard key={citizen.userId} citizen={citizen} rank={i + 1} index={i} />
+                ))}
+              </div>
+              <div className="hidden items-end justify-center gap-3 md:flex md:gap-6 lg:gap-10">
               {/* 2nd place */}
               <div className="flex flex-col items-center">
                 <PodiumCard citizen={top3[1]} rank={2} index={1} />
@@ -873,7 +938,8 @@ export default function Leaderboard() {
                 <PodiumCard citizen={top3[2]} rank={3} index={2} />
                 <PodiumPedestal rank={3} height={60} />
               </div>
-            </div>
+              </div>
+            </>
           ) : top3.length > 0 ? (
             <div className="flex items-end justify-center gap-8 min-h-[340px]">
               {top3.map((citizen, i) => (
@@ -885,9 +951,9 @@ export default function Leaderboard() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center text-slate-400 rounded-2xl border border-dashed border-slate-700 bg-white/[0.03] px-12 py-10"
+                className="rounded-2xl border border-dashed border-zinc-300 bg-white/70 px-12 py-10 text-center text-zinc-500 dark:border-slate-700 dark:bg-white/[0.03] dark:text-slate-400"
               >
-                <Trophy className="h-10 w-10 mx-auto mb-3 text-slate-600" />
+                <Trophy className="mx-auto mb-3 h-10 w-10 text-zinc-400 dark:text-slate-600" />
                 <p className="font-semibold">No leaderboard data yet</p>
                 <p className="text-sm mt-1 text-slate-500">Start reporting and validating civic issues</p>
               </motion.div>
@@ -913,19 +979,19 @@ export default function Leaderboard() {
             <motion.span
               animate={{ opacity: [1, 0.3, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-slate-500 text-xl font-bold mt-[-18px]"
+              className="mt-[-18px] text-xl font-bold text-zinc-400 dark:text-slate-500"
             >:</motion.span>
             <CountdownUnit value={timeLeft.hours} label="Hours" />
             <motion.span
               animate={{ opacity: [1, 0.3, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-slate-500 text-xl font-bold mt-[-18px]"
+              className="mt-[-18px] text-xl font-bold text-zinc-400 dark:text-slate-500"
             >:</motion.span>
             <CountdownUnit value={timeLeft.minutes} label="Min" />
             <motion.span
               animate={{ opacity: [1, 0.3, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
-              className="text-slate-500 text-xl font-bold mt-[-18px]"
+              className="mt-[-18px] text-xl font-bold text-zinc-400 dark:text-slate-500"
             >:</motion.span>
             <CountdownUnit value={timeLeft.seconds} label="Sec" />
           </div>
@@ -938,7 +1004,7 @@ export default function Leaderboard() {
           transition={{ delay: 1.3 }}
           className="flex justify-center mb-8"
         >
-          <div className="inline-flex items-center gap-5 sm:gap-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl px-5 sm:px-7 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.25)]">
+          <div className="inline-flex items-center gap-4 rounded-2xl border border-zinc-200 bg-white/85 px-4 py-4 shadow-[0_8px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-white/[0.08] dark:bg-white/[0.03] dark:shadow-[0_8px_40px_rgba(0,0,0,0.25)] sm:gap-6 sm:px-7">
             {[
               { icon: Zap, label: 'Live Issues', value: stats.liveIssues, color: 'emerald' },
               { icon: ThumbsUp, label: 'Validations', value: stats.totalValidations, color: 'cyan' },
@@ -946,16 +1012,16 @@ export default function Leaderboard() {
               { icon: Users, label: 'Ranked', value: stats.leaderboardCitizens, color: 'amber', hideOnMd: true },
             ].map(({ icon: Icon, label, value, color, hideOnMobile, hideOnMd }, i) => (
               <div key={label} className={`flex items-center gap-2 ${hideOnMobile ? 'hidden sm:flex' : ''} ${hideOnMd ? 'hidden md:flex' : ''}`}>
-                {i > 0 && <div className={`w-px h-8 bg-white/[0.07] mr-1 ${hideOnMobile && i === 2 ? 'hidden sm:block' : ''} ${hideOnMd && i === 3 ? 'hidden md:block' : ''}`} />}
+                {i > 0 && <div className={`mr-1 h-8 w-px bg-zinc-200 dark:bg-white/[0.07] ${hideOnMobile && i === 2 ? 'hidden sm:block' : ''} ${hideOnMd && i === 3 ? 'hidden md:block' : ''}`} />}
                 <motion.div
                   whileHover={{ scale: 1.15, rotate: 5 }}
-                  className={`w-9 h-9 rounded-xl bg-${color}-500/15 flex items-center justify-center`}
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl bg-${color}-500/15`}
                 >
                   <Icon className={`h-4 w-4 text-${color}-400`} />
                 </motion.div>
                 <div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</div>
-                  <div className="text-sm font-bold text-white"><AnimatedNumber value={value} /></div>
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-slate-500">{label}</div>
+                  <div className="text-sm font-bold text-zinc-950 dark:text-white"><AnimatedNumber value={value} /></div>
                 </div>
               </div>
             ))}
@@ -971,7 +1037,7 @@ export default function Leaderboard() {
         >
           <motion.div
             whileHover={{ scale: 1.03 }}
-            className="relative inline-flex items-center gap-2 rounded-full border border-emerald-500/15 bg-emerald-500/[0.07] px-5 py-2.5 overflow-hidden"
+            className="relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-emerald-500/15 bg-emerald-500/[0.07] px-4 py-2.5 sm:px-5"
           >
             {/* Animated shimmer */}
             <motion.div
@@ -984,13 +1050,13 @@ export default function Leaderboard() {
               transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}
             />
             <Sparkles className="h-4 w-4 text-emerald-400 relative z-10" />
-            <span className="text-sm text-slate-200 relative z-10">
-              Community earned <Heart className="h-3.5 w-3.5 text-cyan-400 inline mx-0.5 align-text-bottom" />
-              <span className="font-bold text-white">{stats.totalValidations}</span> validations — ranking
-              <span className="font-bold text-white ml-1">{stats.leaderboardCitizens}</span> citizens
-            </span>
+              <span className="relative z-10 text-xs text-zinc-700 dark:text-slate-200 sm:text-sm">
+                Community earned <Heart className="h-3.5 w-3.5 text-cyan-400 inline mx-0.5 align-text-bottom" />
+                <span className="font-bold text-zinc-950 dark:text-white">{stats.totalValidations}</span> validations — ranking
+                <span className="ml-1 font-bold text-zinc-950 dark:text-white">{stats.leaderboardCitizens}</span> citizens
+              </span>
+            </motion.div>
           </motion.div>
-        </motion.div>
 
         {/* ═══ COMMUNITY PULSE HEATMAP ═══ */}
         <motion.div
@@ -999,37 +1065,96 @@ export default function Leaderboard() {
           transition={{ delay: 1.5 }}
           className="mb-10"
         >
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm p-5 shadow-[0_8px_50px_rgba(0,0,0,0.2)]">
-            <div className="flex items-center justify-between mb-4">
+          <div className="rounded-2xl border border-zinc-200 bg-white/85 p-4 shadow-[0_8px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:shadow-[0_8px_50px_rgba(0,0,0,0.2)] sm:p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Community Pulse</h3>
+                <h3 className="text-sm font-bold text-zinc-950 dark:text-white">Community Pulse</h3>
                 <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span><span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span></span>
               </div>
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider">Last 90 days</span>
+              <span className="text-[10px] uppercase tracking-wider text-zinc-500 dark:text-slate-500">Last 90 days</span>
             </div>
-            {/* Heatmap grid */}
+
+            {/* Rotating motivational slogan */}
+            <div className="mb-5 h-8 overflow-hidden relative">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={sloganIndex}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -14 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="text-base">{civicSlogans[sloganIndex].emoji}</span>
+                  <span className="text-xs italic text-zinc-500 dark:text-slate-400">"{civicSlogans[sloganIndex].text}"</span>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Heatmap grid with emojis */}
             <div className="overflow-x-auto">
-              <div className="grid gap-[3px]" style={{ gridTemplateColumns: 'repeat(15, 1fr)' }}>
-                {communityHeatmap.map((cell, i) => (
-                  <motion.div
-                    key={cell.key}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 1.6 + i * 0.003, duration: 0.3 }}
-                    title={`${cell.date.toLocaleDateString('en-IN')} • ${cell.count} issue${cell.count !== 1 ? 's' : ''}`}
-                    className={`aspect-square rounded-[3px] transition-all duration-200 hover:scale-[1.6] hover:rounded-sm hover:ring-1 hover:ring-emerald-400/40 cursor-crosshair ${getHeatmapCellClass(cell.count, maxHeatCount)}`}
-                  />
-                ))}
+              <div className="grid min-w-[280px] gap-[3px] sm:min-w-0" style={{ gridTemplateColumns: 'repeat(15, 1fr)' }}>
+                {communityHeatmap.map((cell, i) => {
+                  const emoji = getCellEmoji(cell.count, maxHeatCount);
+                  const message = getCellMessage(cell.count, maxHeatCount);
+                  return (
+                    <motion.div
+                      key={cell.key}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.6 + i * 0.004, duration: 0.3 }}
+                      title={`${cell.date.toLocaleDateString('en-IN')} — ${message}`}
+                      className={`group/cell relative aspect-square rounded-[4px] transition-all duration-200 hover:scale-[1.5] hover:rounded-md hover:ring-2 hover:ring-emerald-400/50 hover:ring-offset-1 hover:ring-offset-[#070d1a] cursor-crosshair ${getHeatmapCellClass(cell.count, maxHeatCount)}`}
+                    >
+                      {emoji && (
+                        <span className="absolute inset-0 flex items-center justify-center text-[7px] opacity-0 group-hover/cell:opacity-100 transition-opacity duration-200 pointer-events-none" style={{ fontSize: 'clamp(6px, 0.7vw, 10px)' }}>
+                          {emoji}
+                        </span>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
-            {/* Legend */}
-            <div className="flex items-center justify-end gap-1.5 mt-3">
-              <span className="text-[9px] text-slate-500">Less</span>
-              {['bg-slate-800/60', 'bg-emerald-900/50', 'bg-emerald-700/60', 'bg-emerald-500', 'bg-emerald-400'].map((cls, i) => (
-                <div key={i} className={`w-[10px] h-[10px] rounded-[2px] ${cls}`} />
+
+            {/* Impact summary */}
+            <div className="mt-5 flex flex-wrap items-center gap-3 sm:gap-5">
+              {[
+                { emoji: '🛡️', label: 'Lives safer', value: stats.resolvedByMunicipality * 12 },
+                { emoji: '🌳', label: 'Wards greener', value: Math.round(stats.liveIssues * 1.8) },
+                { emoji: '🧹', label: 'Streets cleaner', value: stats.resolvedByMunicipality * 3 },
+                { emoji: '💚', label: 'Citizens inspired', value: stats.totalValidations },
+              ].map(({ emoji, label, value }) => (
+                <motion.div
+                  key={label}
+                  whileHover={{ scale: 1.08, y: -2 }}
+                  className="flex items-center gap-1.5 rounded-full border border-white/[0.07] bg-white/[0.03] px-3 py-1.5 cursor-default"
+                >
+                  <span className="text-sm">{emoji}</span>
+                  <span className="text-[10px] font-bold text-zinc-950 dark:text-white">{value}</span>
+                  <span className="text-[9px] text-zinc-500 dark:text-slate-500">{label}</span>
+                </motion.div>
               ))}
-              <span className="text-[9px] text-slate-500">More</span>
+            </div>
+
+            {/* Legend with emoji labels */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="flex flex-wrap items-center gap-3 text-[9px] text-zinc-500 dark:text-slate-500">
+                <span className="flex items-center gap-1">💤 <span>Rest</span></span>
+                <span className="flex items-center gap-1">🌱 <span>Seeds</span></span>
+                <span className="flex items-center gap-1">🌿 <span>Growth</span></span>
+                <span className="flex items-center gap-1">🌳 <span>Thriving</span></span>
+                <span className="flex items-center gap-1">🏆 <span>Hero day</span></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] text-zinc-500 dark:text-slate-500">Less</span>
+                {['bg-slate-800/60', 'bg-emerald-900/50', 'bg-emerald-700/60', 'bg-emerald-500', 'bg-emerald-400'].map((cls, i) => (
+                  <div key={i} className={`w-[10px] h-[10px] rounded-[2px] ${cls}`} />
+                ))}
+                <span className="text-[9px] text-zinc-500 dark:text-slate-500">More</span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1041,20 +1166,27 @@ export default function Leaderboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0 }}
           >
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur-sm overflow-hidden shadow-[0_8px_50px_rgba(0,0,0,0.2)]">
+            <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white/85 shadow-[0_8px_50px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:border-white/[0.08] dark:bg-white/[0.02] dark:shadow-[0_8px_50px_rgba(0,0,0,0.2)]">
               {/* Header */}
-              <div className="grid grid-cols-[60px_1fr_90px_110px_100px] sm:grid-cols-[80px_1fr_120px_140px_120px] gap-2 px-4 sm:px-6 py-4 border-b border-white/[0.07] bg-white/[0.02]">
+              <div className="hidden grid-cols-[80px_1fr_120px_140px_120px] gap-2 border-b border-zinc-200 bg-zinc-50/80 px-6 py-4 dark:border-white/[0.07] dark:bg-white/[0.02] md:grid">
                 {['Rank', 'Citizen', 'Reports', 'Civic Score', 'Reward'].map((h) => (
-                  <span key={h} className={`text-[11px] font-semibold text-slate-500 uppercase tracking-[0.12em] ${['Reports', 'Civic Score', 'Reward'].includes(h) ? 'text-center' : ''}`}>
+                  <span key={h} className={`text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500 dark:text-slate-500 ${['Reports', 'Civic Score', 'Reward'].includes(h) ? 'text-center' : ''}`}>
                     {h}
                   </span>
                 ))}
               </div>
 
               {/* Rows */}
-              {rest.map((citizen, i) => (
-                <LeaderboardRow key={citizen.userId} citizen={citizen} rank={i + 4} index={i} />
-              ))}
+              <div className="space-y-3 p-3 md:hidden">
+                {rest.map((citizen, i) => (
+                  <MobileCitizenCard key={citizen.userId} citizen={citizen} rank={i + 4} index={i + 3} />
+                ))}
+              </div>
+              <div className="hidden md:block">
+                {rest.map((citizen, i) => (
+                  <LeaderboardRow key={citizen.userId} citizen={citizen} rank={i + 4} index={i} />
+                ))}
+              </div>
             </div>
           </motion.div>
         )}
@@ -1067,22 +1199,22 @@ export default function Leaderboard() {
           className="mt-12 relative group"
         >
           <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-emerald-500/20 via-cyan-500/10 to-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
-          <div className="relative rounded-2xl border border-white/[0.08] bg-gradient-to-r from-emerald-950/30 via-[#0b1120] to-cyan-950/30 backdrop-blur-sm p-7 sm:p-9 overflow-hidden">
+          <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 p-6 backdrop-blur-sm dark:border-white/[0.08] dark:from-emerald-950/30 dark:via-[#0b1120] dark:to-cyan-950/30 sm:p-9">
             {/* Background orb */}
             <div className="absolute -right-20 -top-20 w-60 h-60 rounded-full bg-emerald-500/[0.06] blur-3xl pointer-events-none" />
 
             <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
               <div>
-                <div className="flex items-center gap-3 mb-3">
+                <div className="mb-3 flex items-center gap-3">
                   <motion.div
                     whileHover={{ rotate: 15, scale: 1.1 }}
                     className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.35)]"
                   >
                     <TrendingUp className="h-5 w-5 text-white" />
                   </motion.div>
-                  <h2 className="text-xl font-bold text-white">Ready to climb the ranks?</h2>
+                  <h2 className="text-xl font-bold text-zinc-950 dark:text-white">Ready to climb the ranks?</h2>
                 </div>
-                <p className="text-sm text-slate-400 max-w-lg leading-relaxed">
+                <p className="max-w-lg text-sm leading-relaxed text-zinc-600 dark:text-slate-400">
                   Post clear issue evidence, validate what you see nearby, and follow through until municipal resolution closes the loop. Every resolved report earns civic score points.
                 </p>
               </div>

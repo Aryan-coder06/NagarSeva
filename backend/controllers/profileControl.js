@@ -1,4 +1,5 @@
 const UserProfile = require('../models/UserProfile');
+const { createNotificationForProfile, buildIssueUrl } = require('../services/notifications');
 
 const normalizePortalType = (value) => {
   if (value === 'municipal') return 'municipality';
@@ -55,7 +56,7 @@ const sanitizeProfilePayload = (body, auth) => {
     municipalityProfile: {
       organizationName: (municipalityProfile.organizationName || '').trim(),
       department: (municipalityProfile.department || '').trim(),
-      designation: (municipalityProfile.designation || '').trim(),
+      designation: (municipalityProfile.designation || '').trim() || undefined,
       assignedCategories: Array.isArray(municipalityProfile.assignedCategories)
         ? municipalityProfile.assignedCategories.map((item) => String(item || '').trim()).filter(Boolean)
         : [],
@@ -66,6 +67,15 @@ const sanitizeProfilePayload = (body, auth) => {
       ward: (municipalityProfile.ward || '').trim(),
       locality: (municipalityProfile.locality || '').trim(),
       officeAddress: (municipalityProfile.officeAddress || '').trim(),
+    },
+    notificationPreferences: {
+      inApp: body.notificationPreferences?.inApp !== false,
+      email: body.notificationPreferences?.email !== false,
+      issueCreated: body.notificationPreferences?.issueCreated !== false,
+      statusChanged: body.notificationPreferences?.statusChanged !== false,
+      assignmentAlerts: body.notificationPreferences?.assignmentAlerts !== false,
+      authenticityAlerts: body.notificationPreferences?.authenticityAlerts !== false,
+      marketing: body.notificationPreferences?.marketing === true,
     },
   };
 };
@@ -120,6 +130,24 @@ const upsertMyProfile = async (req, res) => {
         setDefaultsOnInsert: true,
       }
     );
+
+    if (!existingProfile) {
+      await createNotificationForProfile({
+        profile: profile.toObject ? profile.toObject() : profile,
+        type: 'welcome',
+        title: `Welcome to NagarSeva, ${payload.fullName.split(' ')[0] || 'Citizen'}`,
+        message: `Your ${payload.portalType} account is live. Use NagarSeva to report issues, track municipal action, validate community reports, and build your civic reputation in India-first local queues.`,
+        ctaLabel: payload.portalType === 'municipality' ? 'Open municipal portal' : 'Open dashboard',
+        ctaUrl: payload.portalType === 'municipality' ? `${buildIssueUrl(null, 'municipality')}` : `${buildIssueUrl(null, 'citizen')}`,
+        email: {
+          subject: 'Welcome to NagarSeva',
+          title: 'Welcome to NagarSeva',
+          message: `Your account has been created successfully. NagarSeva helps you report local civic issues with evidence, track them through verification and municipal handling, and participate in a transparent public-resolution workflow. Keep your profile updated, use the map to inspect nearby cases, and follow your dashboard for status changes, rewards, and civic tier growth.`,
+          ctaLabel: payload.portalType === 'municipality' ? 'Enter operations workspace' : 'Open your dashboard',
+          variant: 'welcome',
+        },
+      });
+    }
 
     return res.status(200).json(profile);
   } catch (error) {

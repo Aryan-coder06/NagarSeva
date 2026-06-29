@@ -97,16 +97,16 @@ export const AuthProvider = ({ children }) => {
             email: firebaseUser.email,
         };
         setUser(normalizedUser);
-        await loadProfile(firebaseUser);
-        return normalizedUser;
+        const loadedProfile = await loadProfile(firebaseUser);
+        return { user: normalizedUser, profile: loadedProfile };
     };
 
 
     const login = async (email, password) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            const normalizedUser = await checkUser();
-            return { success: true, user: normalizedUser, profile };
+            const authState = await checkUser();
+            return { success: true, user: authState?.user, profile: authState?.profile ?? null };
         } catch (error) {
             console.error('Login failed:', error);
             return { success: false, error: error.message };
@@ -119,8 +119,8 @@ export const AuthProvider = ({ children }) => {
             if (name) {
                 await updateProfile(credential.user, { displayName: name });
             }
-            const normalizedUser = await checkUser();
-            return { success: true, user: normalizedUser };
+            const authState = await checkUser();
+            return { success: true, user: authState?.user, profile: authState?.profile ?? null };
         } catch (error) {
             console.error('Registration failed:', error);
             return { success: false, error: error.message };
@@ -135,8 +135,13 @@ export const AuthProvider = ({ children }) => {
                 const fallbackName = credential.user.email.split('@')[0];
                 await updateProfile(credential.user, { displayName: fallbackName });
             }
-            const normalizedUser = await checkUser();
-            return { success: true, provider: GoogleAuthProvider.PROVIDER_ID, user: normalizedUser, profile };
+            const authState = await checkUser();
+            return {
+                success: true,
+                provider: GoogleAuthProvider.PROVIDER_ID,
+                user: authState?.user,
+                profile: authState?.profile ?? null,
+            };
         } catch (error) {
             console.error('Google sign-in failed:', error);
             return { success: false, error: error.message };

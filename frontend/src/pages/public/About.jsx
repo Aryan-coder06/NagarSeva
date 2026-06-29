@@ -318,10 +318,10 @@ const features = [
 ];
 
 const stats = [
-  { icon: Users, label: 'Active Citizens', target: 23141, color: 'emerald' },
-  { icon: Target, label: 'Issues Reported', target: 18750, color: 'cyan' },
-  { icon: CheckCircle2, label: 'Issues Resolved', target: 14200, suffix: '+', color: 'violet' },
-  { icon: Globe, label: 'Cities Covered', target: 85, color: 'amber' },
+  { icon: Users, label: 'Active Citizens', target: 218, color: 'emerald' },
+  { icon: Target, label: 'Issues Reported', target: 146, color: 'cyan' },
+  { icon: CheckCircle2, label: 'Issues Resolved', target: 59, suffix: '+', color: 'violet' },
+  { icon: Globe, label: 'Cities Covered', target: 12, color: 'amber' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════

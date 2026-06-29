@@ -13,6 +13,7 @@ process.on('uncaughtException', (error) => {
 
 const app = express();
 const port = process.env.PORT || 3000;
+const host = process.env.HOST || '0.0.0.0';
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || '')
   .split(',')
   .map((origin) => origin.trim())
@@ -53,6 +54,7 @@ app.use("/api", require('./routes/upload'));
 app.use('/api', require('./routes/ai'));
 app.use('/api', require('./routes/officer'));
 app.use('/api', require('./routes/profile'));
+app.use('/api', require('./routes/notification'));
 
 app.use((err, req, res, next) => {
   if (err?.message === 'Unexpected end of form') {
@@ -72,6 +74,6 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+app.listen(port, host, () => {
+  console.log(`Server is running at http://${host}:${port}`);
 });

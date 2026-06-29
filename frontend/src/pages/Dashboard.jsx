@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { getUsersIssues } from '../api/Issues';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   Award,
@@ -32,7 +32,6 @@ import Loader from '../components/extras/Loader';
 import MapUI from '../components/MapUI';
 import { demoIssues, getCategoryConfig, getStatusConfig } from '../data/demoIssues';
 import { motion } from 'framer-motion';
-import ScrollMorphShowcase from '../components/dashboard/ScrollMorphShowcase';
 import { getCitizenLevel } from '../utils/citizenTier';
 import FireStreak from '../components/dashboard/FireStreak';
 import AnimatedCounter from '../components/dashboard/AnimatedCounter';
@@ -114,12 +113,12 @@ const getIssueDate = (issue) => {
   return parsed;
 };
 
-const getDisplayName = (user) => {
-  return user?.name || user?.displayName || user?.email?.split('@')[0] || 'Citizen';
+const getDisplayName = (user, profile) => {
+  return profile?.fullName?.trim() || user?.name || user?.displayName || user?.email?.split('@')[0] || 'Citizen';
 };
 
-const getInitials = (user) => {
-  const name = getDisplayName(user).trim();
+const getInitials = (user, profile) => {
+  const name = getDisplayName(user, profile).trim();
   const words = name.split(/\s+/).slice(0, 2);
   return words.map((word) => word[0]?.toUpperCase() || '').join('') || 'NS';
 };
@@ -389,7 +388,7 @@ const Dashboard = () => {
       const token = await getToken();
       const upload = await uploadImage(file, token);
       await saveProfile({
-        fullName: profile?.fullName || getDisplayName(user),
+        fullName: profile?.fullName || getDisplayName(user, profile),
         email: user?.email,
         phone: profile?.phone || '',
         country: profile?.country || 'India',
@@ -454,10 +453,10 @@ const Dashboard = () => {
                       className="group relative h-16 w-16 overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-600 text-lg font-black text-white shadow-lg shadow-emerald-500/25"
                     >
                       {profile?.avatarUrl ? (
-                        <img src={profile.avatarUrl} alt={getDisplayName(user)} className="h-full w-full object-cover" />
+                        <img src={profile.avatarUrl} alt={getDisplayName(user, profile)} className="h-full w-full object-cover" />
                       ) : (
                         <div className="grid h-full w-full place-items-center">
-                          {getInitials(user)}
+                          {getInitials(user, profile)}
                         </div>
                       )}
                       <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-slate-950/60 py-1 text-[10px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100">
@@ -467,7 +466,7 @@ const Dashboard = () => {
                     </button>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:text-emerald-300">Citizen</p>
-                      <h2 className="text-xl font-bold text-zinc-950 dark:text-white">{getDisplayName(user)}</h2>
+                      <h2 className="text-xl font-bold text-zinc-950 dark:text-white">{getDisplayName(user, profile)}</h2>
                       <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         {profile?.citizenProfile?.city || 'India'}{profile?.citizenProfile?.state ? `, ${profile.citizenProfile.state}` : ''}
                       </p>
@@ -622,7 +621,7 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Citizen portal</p>
                         <h1 className="mt-1 text-3xl font-bold text-zinc-950 dark:text-white">
-                          Welcome back, <span className="gradient-text">{getDisplayName(user)}</span>
+                          Welcome back, <span className="gradient-text">{getDisplayName(user, profile)}</span>
                         </h1>
                         <div className="mt-3 flex flex-wrap items-center gap-2">
                           <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${citizenLevel.tagClass}`}>
@@ -639,8 +638,6 @@ const Dashboard = () => {
                     </div>
                   </motion.div>
                 </div>
-
-                <ScrollMorphShowcase />
 
                 {usingDemo && (
                   <div className="mb-6 mt-6 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-900 dark:border-amber-900/30 dark:bg-amber-950/30 dark:text-amber-200">
@@ -943,80 +940,141 @@ const Dashboard = () => {
         )}
 
         {showTierModal && (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-md" onClick={() => setShowTierModal(false)}>
-            <div
-              className="w-full max-w-3xl rounded-[30px] border border-white/10 bg-white/95 p-6 shadow-2xl dark:bg-slate-950/95"
+          <div className="fixed inset-0 z-[70] flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-16 backdrop-blur-sm transition-all md:pt-24" onClick={() => setShowTierModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative mb-16 w-full max-w-6xl rounded-[32px] border border-white/20 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/95 md:p-8"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Citizen level system</p>
-                  <h2 className="mt-1 text-2xl font-bold text-zinc-950 dark:text-white">Progression ladder</h2>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">Leveling is tied to valid reporting, municipal resolutions, community validation, and consistent streaks.</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Citizen level system</p>
+                  <h2 className="mt-1 text-3xl font-black text-zinc-950 dark:text-white">Progression ladder</h2>
+                  <p className="mt-2 text-base text-zinc-600 dark:text-zinc-300">Leveling is tied to valid reporting, municipal resolutions, community validation, and consistent streaks.</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowTierModal(false)}
-                  className="rounded-full border border-zinc-200 px-3 py-1 text-sm font-semibold text-zinc-600 dark:border-zinc-700 dark:text-zinc-300"
+                  className="rounded-full border border-zinc-200 bg-zinc-50 px-5 py-2.5 text-sm font-bold text-zinc-600 transition hover:scale-105 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:bg-slate-800 dark:text-zinc-300 dark:hover:bg-slate-700 dark:hover:text-white"
                 >
                   Close
                 </button>
               </div>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {[
                   {
-                      level: 'Level 1',
-                      name: 'Jagruk',
-                      hindi: 'जागरूक',
-                      requirement: '1-5 valid reports submitted',
-                      vibe: 'The Aware Citizen',
-                      style: 'from-sky-500 via-cyan-500 to-emerald-500',
-                      reward: 100,
+                    level: 'Level 1',
+                    name: 'Jagruk',
+                    hindi: 'जागरूक',
+                    requirement: '1-5 valid reports submitted',
+                    vibe: 'The Aware Citizen',
+                    style: 'from-sky-500 via-cyan-500 to-emerald-500',
+                    theme: {
+                      border: 'border-white/20 dark:border-white/10 shadow-lg',
+                      bg: 'bg-zinc-50/90 dark:bg-slate-900/80',
+                      glow: '',
+                      icon: null,
+                      reqBorder: 'border-zinc-200 dark:border-zinc-700',
+                      reqBg: 'bg-white/80 dark:bg-slate-950/70',
+                      reqText: 'text-zinc-700 dark:text-zinc-200'
                     },
-                    {
-                      level: 'Level 2',
-                      name: 'Nagar Sathi',
-                      hindi: 'नगर साथी',
-                      requirement: '10+ reports, validation activity, and 1+ resolved issue',
-                      vibe: 'The Active Ally',
-                      style: 'from-emerald-500 via-teal-500 to-cyan-600',
-                      reward: 2000,
+                    reward: 100,
+                  },
+                  {
+                    level: 'Level 2',
+                    name: 'Nagar Sathi',
+                    hindi: 'नगर साथी',
+                    requirement: '10+ reports, validation activity, and 1+ resolved issue',
+                    vibe: 'The Active Ally',
+                    style: 'from-emerald-500 via-teal-500 to-cyan-600',
+                    theme: {
+                      border: 'border-emerald-400/30 dark:border-emerald-500/30 shadow-[0_0_20px_-5px_rgba(16,185,129,0.15)]',
+                      bg: 'bg-emerald-50/90 dark:bg-emerald-950/20',
+                      glow: 'from-emerald-400/5 via-transparent to-teal-500/5',
+                      icon: ShieldCheck,
+                      iconColor: 'text-emerald-500',
+                      reqBorder: 'border-emerald-200 dark:border-emerald-800/50',
+                      reqBg: 'bg-emerald-100/50 dark:bg-emerald-900/30',
+                      reqText: 'text-emerald-900 dark:text-emerald-200'
                     },
-                    {
-                      level: 'Level 3',
-                      name: 'Prahari',
-                      hindi: 'प्रहरी',
-                      requirement: '20+ reports, 5+ resolved issues, and stronger trust signal',
-                      vibe: 'The Sentinel',
-                      style: 'from-violet-500 via-fuchsia-500 to-pink-500',
-                      reward: 5000,
+                    reward: 2000,
+                  },
+                  {
+                    level: 'Level 3',
+                    name: 'Prahari',
+                    hindi: 'प्रहरी',
+                    requirement: '20+ reports, 5+ resolved issues, and stronger trust signal',
+                    vibe: 'The Sentinel',
+                    style: 'from-violet-500 via-fuchsia-500 to-pink-500',
+                    theme: {
+                      border: 'border-fuchsia-400/40 dark:border-fuchsia-500/40 shadow-[0_0_25px_-5px_rgba(217,70,239,0.2)]',
+                      bg: 'bg-fuchsia-50/90 dark:bg-fuchsia-950/20',
+                      glow: 'from-fuchsia-400/10 via-transparent to-purple-500/10',
+                      icon: Zap,
+                      iconColor: 'text-fuchsia-500',
+                      reqBorder: 'border-fuchsia-200 dark:border-fuchsia-800/50',
+                      reqBg: 'bg-fuchsia-100/50 dark:bg-fuchsia-900/30',
+                      reqText: 'text-fuchsia-900 dark:text-fuchsia-200'
                     },
-                    {
-                      level: 'Level 4',
-                      name: 'Karmayogi',
-                      hindi: 'कर्मयोगी',
-                      requirement: '40+ reports, 12+ resolutions, 75+ validations, and a 50-day streak',
-                      vibe: 'The Legendary Builder',
-                      style: 'from-amber-300 via-yellow-400 to-orange-500',
-                      reward: 10000,
+                    reward: 5000,
+                  },
+                  {
+                    level: 'Level 4',
+                    name: 'Karmayogi',
+                    hindi: 'कर्मयोगी',
+                    requirement: '40+ reports, 12+ resolutions, 75+ validations, and a 50-day streak',
+                    vibe: 'The Legendary Builder',
+                    style: 'from-amber-400 via-yellow-500 to-orange-500',
+                    theme: {
+                      border: 'border-amber-400/50 dark:border-amber-500/40 shadow-[0_0_30px_-5px_rgba(251,191,36,0.25)]',
+                      bg: 'bg-amber-50/90 dark:bg-amber-950/20',
+                      glow: 'from-amber-400/10 via-transparent to-orange-500/10',
+                      icon: Sparkles,
+                      iconColor: 'text-amber-500',
+                      reqBorder: 'border-amber-200 dark:border-amber-800/50',
+                      reqBg: 'bg-amber-100/50 dark:bg-amber-900/40',
+                      reqText: 'text-amber-900 dark:text-amber-200'
                     },
+                    reward: 10000,
+                  },
                 ].map((tier) => (
-                  <div key={tier.level} className="rounded-[24px] border border-white/20 bg-zinc-50/80 p-4 dark:border-white/10 dark:bg-slate-900/70">
-                    <div className={`inline-flex rounded-full bg-gradient-to-r px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white ${tier.style}`}>
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    key={tier.level}
+                    className={`relative overflow-hidden rounded-[24px] border ${tier.theme.border} ${tier.theme.bg} p-5 backdrop-blur-md`}
+                  >
+                    {tier.theme.glow && (
+                      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tier.theme.glow}`} />
+                    )}
+                    <div className={`inline-flex rounded-full bg-gradient-to-r px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-white shadow-sm ${tier.style}`}>
                       {tier.level}
                     </div>
-                    <h3 className="mt-4 text-lg font-bold text-zinc-950 dark:text-white">{tier.name}</h3>
-                    <p className="mt-1 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{tier.hindi}</p>
-                    <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">{tier.vibe}</p>
-                    <p className="mt-3 text-xl font-black text-zinc-950 dark:text-white">₹{tier.reward.toLocaleString('en-IN')}</p>
-                    <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Government cycle reward</p>
-                    <p className="mt-3 rounded-2xl border border-zinc-200 bg-white/80 px-3 py-3 text-sm text-zinc-700 dark:border-zinc-700 dark:bg-slate-950/70 dark:text-zinc-200">
+                    <h3 className="mt-4 flex items-center gap-2 text-xl font-bold text-zinc-950 dark:text-white">
+                      {tier.name}
+                      {tier.theme.icon && (
+                        <motion.div
+                          animate={tier.theme.icon === Sparkles ? { rotate: [0, 15, -15, 0] } : tier.theme.icon === Zap ? { scale: [1, 1.1, 1] } : {}}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                        >
+                          <tier.theme.icon className={`h-5 w-5 ${tier.theme.iconColor}`} />
+                        </motion.div>
+                      )}
+                    </h3>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{tier.hindi}</p>
+                    <p className="mt-3 text-sm font-medium text-zinc-600 dark:text-zinc-300">{tier.vibe}</p>
+                    <div className="my-4 h-px w-full bg-gradient-to-r from-transparent via-zinc-200 to-transparent dark:via-zinc-700" />
+                    <p className="text-2xl font-black text-zinc-950 dark:text-white">₹{tier.reward.toLocaleString('en-IN')}</p>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">Monthly reward</p>
+                    <p className={`mt-4 rounded-2xl border ${tier.theme.reqBorder} ${tier.theme.reqBg} ${tier.theme.reqText} px-4 py-3 text-xs leading-relaxed`}>
                       {tier.requirement}
                     </p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 

@@ -2,265 +2,295 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const Issue = require('../models/Issue');
 
-const hoursAgo = (hours) => new Date(Date.now() - hours * 60 * 60 * 1000);
+const daysAgo = (days, hour = 10) => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  date.setHours(hour, 0, 0, 0);
+  return date;
+};
 
-const seedIssues = [
-  {
-    userId: 'citizen-seed-001',
-    title: 'Large pothole near school gate',
-    userMessage: 'A deep pothole is forcing two-wheelers into the wrong lane during school pickup hours.',
-    status: 'open',
-    category: 'Roads & Transport',
+const seededCitizens = {
+  prahari: {
+    userId: 'citizen-prahari-001',
+    reporterName: 'Arya Mehta',
+    reporterAvatarUrl: '',
+    city: 'Gurugram',
+    state: 'Haryana',
+    baseCoordinates: { latitude: 28.4595, longitude: 77.0266 },
+  },
+  sathi: {
+    userId: 'citizen-sathi-002',
+    reporterName: 'Kabir Jain',
+    reporterAvatarUrl: '',
     city: 'Bengaluru',
     state: 'Karnataka',
-    votes: 48,
-    coordinates: { latitude: 12.9716, longitude: 77.5946 },
-    imageUrl: 'https://images.unsplash.com/photo-1572856524070-86308995e4e9?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
+    baseCoordinates: { latitude: 12.9716, longitude: 77.5946 },
+  },
+  jagruk: {
+    userId: 'citizen-jagruk-003',
+    reporterName: 'Meera Singh',
+    reporterAvatarUrl: '',
+    city: 'Pune',
+    state: 'Maharashtra',
+    baseCoordinates: { latitude: 18.5204, longitude: 73.8567 },
+  },
+};
+
+const categoryCatalog = [
+  {
+    category: 'Roads & Transport',
     issueType: 'Pothole',
     severity: 'High',
     urgency: 'Urgent',
     suggestedDepartment: 'Road Maintenance',
-    publicSummary: 'Deep pothole affecting traffic safety near a school pickup zone.',
-    authoritySummary: 'Immediate road hazard near school gate with high two-wheeler risk during peak student movement.',
-    recommendedAction: 'Inspect and barricade immediately, then schedule asphalt repair.',
-    confidence: 0.92,
-    priorityScore: 91,
-    createdAt: hoursAgo(4),
-    statusTimeline: [{ status: 'open', note: 'Issue created and routed for municipal review', actorId: 'citizen-seed-001', actorType: 'citizen', createdAt: hoursAgo(4) }],
+    titlePrefix: 'Critical pothole cluster',
+    publicSummary: 'Road surface damage is affecting lane safety and commuter flow.',
+    authoritySummary: 'Road maintenance intervention is needed due to repeated citizen reports and mobility risk.',
+    recommendedAction: 'Inspect the affected stretch, barricade if required, and schedule asphalt repair.',
+    imageUrl: 'https://images.unsplash.com/photo-1572856524070-86308995e4e9?auto=format&fit=crop&w=900&q=80',
   },
   {
-    userId: 'citizen-seed-002',
-    title: 'Overflowing waste collection point',
-    userMessage: 'Garbage has not been collected for three days and is spilling onto the footpath.',
-    status: 'pending',
     category: 'Garbage & Sanitation',
-    city: 'Pune',
-    state: 'Maharashtra',
-    votes: 32,
-    coordinates: { latitude: 18.5204, longitude: 73.8567 },
-    imageUrl: 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Garbage overflow',
+    issueType: 'Waste overflow',
     severity: 'Medium',
     urgency: 'Soon',
     suggestedDepartment: 'Sanitation',
-    publicSummary: 'Overflowing waste point is blocking pedestrian access and creating a hygiene risk.',
-    authoritySummary: 'Collection gap has created spillover and recurring sanitation risk on the footpath.',
-    recommendedAction: 'Dispatch collection crew and inspect route frequency.',
-    confidence: 0.88,
-    priorityScore: 73,
-    createdAt: hoursAgo(9),
-    statusTimeline: [{ status: 'pending', note: 'Awaiting collection crew dispatch', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(8) }],
+    titlePrefix: 'Garbage overflow near lane',
+    publicSummary: 'Waste buildup is reducing walkability and creating hygiene issues.',
+    authoritySummary: 'Collection frequency and area cleanliness need municipal follow-up.',
+    recommendedAction: 'Dispatch sanitation crew and review collection timing for the locality.',
+    imageUrl: 'https://images.unsplash.com/photo-1604187351574-c75ca79f5807?auto=format&fit=crop&w=900&q=80',
   },
   {
-    userId: 'citizen-seed-003',
-    title: 'Street light outage on market road',
-    userMessage: 'The street remains dark after 8 PM and pedestrians feel unsafe.',
-    status: 'in progress',
     category: 'Street Lighting',
-    city: 'Delhi',
-    state: 'Delhi',
-    votes: 64,
-    coordinates: { latitude: 28.6139, longitude: 77.2090 },
-    imageUrl: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
     issueType: 'Streetlight outage',
     severity: 'High',
     urgency: 'Urgent',
     suggestedDepartment: 'Electrical Maintenance',
-    publicSummary: 'Dark market corridor is affecting pedestrian safety at night.',
-    authoritySummary: 'Lighting failure on active market road with strong community validation and immediate safety implications.',
-    recommendedAction: 'Replace faulty lamp or wiring and confirm illumination after sunset.',
-    confidence: 0.94,
-    priorityScore: 88,
-    assignedToOfficerName: 'Rohan Verma',
-    escalationLevel: 1,
-    createdAt: hoursAgo(28),
-    statusTimeline: [
-      { status: 'open', note: 'Issue created', actorId: 'citizen-seed-003', actorType: 'citizen', createdAt: hoursAgo(28) },
-      { status: 'in progress', note: 'Assigned to electrical team', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(18) },
-    ],
+    titlePrefix: 'Streetlight outage at block',
+    publicSummary: 'Dark public stretches are reducing visibility and affecting pedestrian safety.',
+    authoritySummary: 'Electrical maintenance team needs to restore illumination in a validated area.',
+    recommendedAction: 'Inspect lamp and feeder line, then confirm restoration after dark.',
+    imageUrl: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=900&q=80',
   },
   {
-    userId: 'citizen-seed-004',
-    title: 'Water leakage from public pipeline',
-    userMessage: 'Clean water is flowing continuously near the bus stop.',
-    status: 'resolved',
     category: 'Water Supply & Drainage',
-    city: 'Hyderabad',
-    state: 'Telangana',
-    votes: 21,
-    coordinates: { latitude: 17.3850, longitude: 78.4867 },
-    imageUrl: 'https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Pipeline leakage',
-    severity: 'Medium',
-    urgency: 'Scheduled',
-    suggestedDepartment: 'Water Works',
-    publicSummary: 'Public pipeline leakage causing clean water wastage near a transit stop.',
-    authoritySummary: 'Moderate leakage verified and completed under water maintenance workflow.',
-    recommendedAction: 'Verify repair quality and monitor recurring leakage.',
-    confidence: 0.83,
-    priorityScore: 52,
-    assignedToOfficerName: 'Neha Sharma',
-    createdAt: hoursAgo(44),
-    statusTimeline: [
-      { status: 'open', note: 'Issue created', actorId: 'citizen-seed-004', actorType: 'citizen', createdAt: hoursAgo(44) },
-      { status: 'resolved', note: 'Pipeline joint replaced and leak stopped', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(6) },
-    ],
-  },
-  {
-    userId: 'citizen-seed-005',
-    title: 'Open drain beside residential lane',
-    userMessage: 'Children are walking past an uncovered drain with no barrier in place.',
-    status: 'open',
-    category: 'Public Safety',
-    city: 'Chennai',
-    state: 'Tamil Nadu',
-    votes: 27,
-    coordinates: { latitude: 13.0827, longitude: 80.2707 },
-    imageUrl: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Open drain hazard',
-    severity: 'High',
-    urgency: 'Urgent',
-    suggestedDepartment: 'Public Works',
-    publicSummary: 'Uncovered drain in a residential lane is a safety risk for children and pedestrians.',
-    authoritySummary: 'Uncovered drain requires immediate barricading and cover replacement due to child safety exposure.',
-    recommendedAction: 'Install temporary barricading and schedule drain cover replacement.',
-    confidence: 0.9,
-    priorityScore: 84,
-    createdAt: hoursAgo(13),
-    statusTimeline: [{ status: 'open', note: 'Issue created and awaiting assignment', actorId: 'citizen-seed-005', actorType: 'citizen', createdAt: hoursAgo(13) }],
-  },
-  {
-    userId: 'citizen-seed-006',
-    title: 'Illegal debris blocking footpath',
-    userMessage: 'Construction debris has taken over the footpath and pedestrians are forced onto the road.',
-    status: 'pending',
-    category: 'Encroachment & Obstruction',
-    city: 'Ahmedabad',
-    state: 'Gujarat',
-    votes: 19,
-    coordinates: { latitude: 23.0225, longitude: 72.5714 },
-    imageUrl: 'https://images.unsplash.com/photo-1519996529931-28324d5a630e?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Footpath obstruction',
-    severity: 'Medium',
-    urgency: 'Soon',
-    suggestedDepartment: 'Ward Enforcement',
-    publicSummary: 'Pedestrian movement is blocked due to construction debris dumping.',
-    authoritySummary: 'Encroachment-style obstruction requires ward enforcement and debris removal follow-up.',
-    recommendedAction: 'Issue removal notice and clear pedestrian access.',
-    confidence: 0.81,
-    priorityScore: 61,
-    createdAt: hoursAgo(31),
-    statusTimeline: [{ status: 'pending', note: 'Notice issued to local contractor', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(20) }],
-  },
-  {
-    userId: 'citizen-seed-007',
-    title: 'Bus shelter roof panel broken',
-    userMessage: 'The roof sheet is hanging loose and could fall during strong winds.',
-    status: 'in progress',
-    category: 'Public Infrastructure',
-    city: 'Jaipur',
-    state: 'Rajasthan',
-    votes: 23,
-    coordinates: { latitude: 26.9124, longitude: 75.7873 },
-    imageUrl: 'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Shelter damage',
-    severity: 'Medium',
-    urgency: 'Soon',
-    suggestedDepartment: 'Transport Infrastructure',
-    publicSummary: 'Damaged bus shelter roofing panel is unsafe in windy conditions.',
-    authoritySummary: 'Loose panel on public transport shelter has moderate injury risk and is already assigned for repair.',
-    recommendedAction: 'Secure the damaged panel and replace the shelter roofing section.',
-    confidence: 0.79,
-    priorityScore: 58,
-    assignedToOfficerName: 'Imran Khan',
-    createdAt: hoursAgo(18),
-    statusTimeline: [{ status: 'in progress', note: 'Repair work order created', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(12) }],
-  },
-  {
-    userId: 'citizen-seed-008',
-    title: 'Sewage overflow after rainfall',
-    userMessage: 'Drain water has mixed with sewage and the smell is spreading across nearby shops.',
-    status: 'open',
-    category: 'Water Supply & Drainage',
-    city: 'Kolkata',
-    state: 'West Bengal',
-    votes: 54,
-    coordinates: { latitude: 22.5726, longitude: 88.3639 },
-    imageUrl: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Sewage overflow',
+    issueType: 'Drainage overflow',
     severity: 'High',
     urgency: 'Immediate',
     suggestedDepartment: 'Drainage & Sewer Operations',
-    publicSummary: 'Sewage overflow is affecting shops and public hygiene after rainfall.',
-    authoritySummary: 'High-severity drainage failure with immediate sanitation and commerce impact.',
-    recommendedAction: 'Deploy drainage crew immediately and sanitize the affected stretch.',
-    confidence: 0.95,
-    priorityScore: 94,
-    escalationLevel: 1,
-    createdAt: hoursAgo(7),
-    statusTimeline: [{ status: 'open', note: 'Escalated for immediate drainage response', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(6) }],
-  },
-  {
-    userId: 'citizen-seed-009',
-    title: 'Traffic signal stuck on red',
-    userMessage: 'Vehicles are piling up because the traffic signal has been stuck on red for over an hour.',
-    status: 'pending',
-    category: 'Roads & Transport',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    votes: 42,
-    coordinates: { latitude: 19.0760, longitude: 72.8777 },
-    imageUrl: 'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Signal malfunction',
-    severity: 'High',
-    urgency: 'Urgent',
-    suggestedDepartment: 'Traffic Operations',
-    publicSummary: 'Signal malfunction is causing queue buildup and unsafe movement at the junction.',
-    authoritySummary: 'Signal remains stuck on red with prolonged congestion and urgent traffic operations impact.',
-    recommendedAction: 'Dispatch signal maintenance crew and deploy traffic police temporarily.',
-    confidence: 0.91,
-    priorityScore: 86,
-    createdAt: hoursAgo(5),
-    statusTimeline: [{ status: 'pending', note: 'Traffic control team alerted', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(4) }],
-  },
-  {
-    userId: 'citizen-seed-010',
-    title: 'Public toilet unusable and unclean',
-    userMessage: 'The community toilet has no running water and has not been cleaned properly.',
-    status: 'resolved',
-    category: 'Sanitation Facilities',
-    city: 'Lucknow',
-    state: 'Uttar Pradesh',
-    votes: 16,
-    coordinates: { latitude: 26.8467, longitude: 80.9462 },
-    imageUrl: 'https://images.unsplash.com/photo-1584622781564-1d987f7333c1?auto=format&fit=crop&w=900&q=80',
-    mediaType: 'image',
-    issueType: 'Sanitation facility maintenance',
-    severity: 'Medium',
-    urgency: 'Scheduled',
-    suggestedDepartment: 'Public Health',
-    publicSummary: 'Community toilet was unusable due to missing water supply and poor hygiene.',
-    authoritySummary: 'Sanitation facility restored under public health operations and marked completed.',
-    recommendedAction: 'Restore water supply and increase the cleaning frequency for this block.',
-    confidence: 0.78,
-    priorityScore: 49,
-    assignedToOfficerName: 'Sakshi Patel',
-    createdAt: hoursAgo(53),
-    statusTimeline: [
-      { status: 'open', note: 'Issue created', actorId: 'citizen-seed-010', actorType: 'citizen', createdAt: hoursAgo(53) },
-      { status: 'resolved', note: 'Cleaning cycle and water supply restored', actorId: 'municipal-seed', actorType: 'municipality', createdAt: hoursAgo(10) },
-    ],
+    titlePrefix: 'Drainage overflow near market',
+    publicSummary: 'Overflowing drainage is causing public hygiene risk and affecting local commerce.',
+    authoritySummary: 'Drainage overflow requires urgent inspection, cleaning, and sanitation measures.',
+    recommendedAction: 'Deploy drainage crew, clear blockage, and sanitize the affected stretch.',
+    imageUrl: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80',
   },
 ];
+
+const buildIssue = ({
+  citizen,
+  catalog,
+  index,
+  createdAt,
+  status,
+  votes,
+  priorityScore,
+  locality,
+  latOffset = 0,
+  lngOffset = 0,
+}) => {
+  const messageSuffix = status === 'resolved'
+    ? 'Residents confirmed the issue was fixed after municipal action.'
+    : status === 'in progress'
+      ? 'Municipal action has started but commuters are still affected.'
+      : 'Residents continue to report the issue as visible on the ground.';
+
+  const timeline = [
+    {
+      status: 'open',
+      note: 'Issue created and added to the civic queue',
+      actorId: citizen.userId,
+      actorType: 'citizen',
+      createdAt,
+    },
+  ];
+
+  if (status === 'pending') {
+    timeline.push({
+      status: 'pending',
+      note: 'Municipal review initiated',
+      actorId: 'municipal-seed',
+      actorType: 'municipality',
+      createdAt: new Date(createdAt.getTime() + 4 * 60 * 60 * 1000),
+    });
+  }
+
+  if (status === 'in progress' || status === 'resolved') {
+    timeline.push({
+      status: 'in progress',
+      note: 'Field team assigned for local inspection',
+      actorId: 'municipal-seed',
+      actorType: 'municipality',
+      createdAt: new Date(createdAt.getTime() + 6 * 60 * 60 * 1000),
+    });
+  }
+
+  if (status === 'resolved') {
+    timeline.push({
+      status: 'resolved',
+      note: 'Repair completed and citizens marked the area improved',
+      actorId: 'municipal-seed',
+      actorType: 'municipality',
+      createdAt: new Date(createdAt.getTime() + 28 * 60 * 60 * 1000),
+    });
+  }
+
+  return {
+    userId: citizen.userId,
+    reporterName: citizen.reporterName,
+    reporterAvatarUrl: citizen.reporterAvatarUrl,
+    title: `${catalog.titlePrefix} ${index + 1} - ${locality}`,
+    userMessage: `${catalog.issueType} reported in ${locality}. ${messageSuffix}`,
+    status,
+    category: catalog.category,
+    city: citizen.city,
+    state: citizen.state,
+    votes,
+    coordinates: {
+      latitude: Number((citizen.baseCoordinates.latitude + latOffset).toFixed(6)),
+      longitude: Number((citizen.baseCoordinates.longitude + lngOffset).toFixed(6)),
+    },
+    imageUrl: catalog.imageUrl,
+    mediaType: 'image',
+    issueType: catalog.issueType,
+    severity: catalog.severity,
+    urgency: catalog.urgency,
+    suggestedDepartment: catalog.suggestedDepartment,
+    publicSummary: `${catalog.publicSummary} Locality: ${locality}.`,
+    authoritySummary: `${catalog.authoritySummary} Locality: ${locality}.`,
+    recommendedAction: catalog.recommendedAction,
+    confidence: 0.84 + (index % 5) * 0.02,
+    priorityScore,
+    verificationStatus: status === 'resolved' ? 'approved' : votes >= 30 ? 'community verified' : 'under review',
+    municipalDecision: status === 'resolved' || status === 'in progress' ? 'approved' : 'pending',
+    communityConfirmCount: Math.round(votes * 0.7),
+    communityFalseCount: votes > 10 ? Math.round(votes * 0.06) : 0,
+    communityDuplicateCount: votes > 8 ? Math.round(votes * 0.08) : 0,
+    trustScore: Math.min(100, 32 + votes),
+    escalationLevel: status === 'open' && priorityScore >= 88 ? 1 : 0,
+    assignedToOfficerName: status === 'open' ? '' : status === 'resolved' ? 'Priya Nair' : 'Rohan Verma',
+    createdAt,
+    statusTimeline: timeline,
+  };
+};
+
+const localities = {
+  Gurugram: [
+    'Sector 45',
+    'Sector 46',
+    'Sector 47',
+    'Sector 56',
+    'Sector 57',
+    'Sector 60',
+    'Sector 61',
+    'Sector 62',
+    'Sector 63',
+    'Sector 64',
+    'Sector 65',
+    'Sector 67',
+    'Sector 69',
+    'Sector 70',
+    'Sector 71',
+    'Sohna Road',
+    'Golf Course Extension',
+    'DLF Phase 3',
+    'Palam Vihar',
+    'New Colony',
+    'South City 2',
+    'Udyog Vihar',
+  ],
+  Bengaluru: [
+    'Koramangala 5th Block',
+    'HSR Layout',
+    'Indiranagar',
+    'Whitefield',
+    'Electronic City',
+    'Jayanagar',
+    'Banashankari',
+    'Malleshwaram',
+    'Marathahalli',
+    'Bellandur',
+    'JP Nagar',
+    'Yelahanka',
+  ],
+  Pune: [
+    'Kothrud',
+    'Baner',
+    'Viman Nagar',
+    'Hadapsar',
+    'Aundh',
+    'Kharadi',
+  ],
+};
+
+const seedIssues = [];
+
+localities.Gurugram.forEach((locality, index) => {
+  const catalog = categoryCatalog[index % categoryCatalog.length];
+  const status = index < 6 ? 'resolved' : index < 12 ? 'in progress' : index < 16 ? 'pending' : 'open';
+  seedIssues.push(
+    buildIssue({
+      citizen: seededCitizens.prahari,
+      catalog,
+      index,
+      locality,
+      createdAt: daysAgo(88 - index * 4, 9 + (index % 4)),
+      status,
+      votes: 24 + (index % 5) * 8,
+      priorityScore: 74 + (index % 6) * 4,
+      latOffset: index * 0.0024,
+      lngOffset: index * 0.0018,
+    })
+  );
+});
+
+localities.Bengaluru.forEach((locality, index) => {
+  const catalog = categoryCatalog[(index + 1) % categoryCatalog.length];
+  const status = index < 2 ? 'resolved' : index < 6 ? 'in progress' : index < 9 ? 'pending' : 'open';
+  seedIssues.push(
+    buildIssue({
+      citizen: seededCitizens.sathi,
+      catalog,
+      index,
+      locality,
+      createdAt: daysAgo(76 - index * 5, 10 + (index % 3)),
+      status,
+      votes: 11 + (index % 4) * 5,
+      priorityScore: 62 + (index % 5) * 5,
+      latOffset: index * 0.0018,
+      lngOffset: index * 0.0014,
+    })
+  );
+});
+
+localities.Pune.forEach((locality, index) => {
+  const catalog = categoryCatalog[(index + 2) % categoryCatalog.length];
+  const status = index === 0 ? 'resolved' : index < 3 ? 'pending' : 'open';
+  seedIssues.push(
+    buildIssue({
+      citizen: seededCitizens.jagruk,
+      catalog,
+      index,
+      locality,
+      createdAt: daysAgo(42 - index * 6, 11),
+      status,
+      votes: 4 + (index % 3) * 3,
+      priorityScore: 50 + (index % 4) * 6,
+      latOffset: index * 0.0012,
+      lngOffset: index * 0.0012,
+    })
+  );
+});
 
 async function seed() {
   if (!process.env.MONGODB_URI) {
@@ -285,7 +315,12 @@ async function seed() {
     }
   }
 
-  console.log(JSON.stringify({ inserted, updated, totalSeedRecords: seedIssues.length }, null, 2));
+  console.log(JSON.stringify({
+    inserted,
+    updated,
+    totalSeedRecords: seedIssues.length,
+    seededUsers: Object.values(seededCitizens).map((citizen) => citizen.reporterName),
+  }, null, 2));
   await mongoose.disconnect();
 }
 

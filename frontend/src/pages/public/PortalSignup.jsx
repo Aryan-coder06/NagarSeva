@@ -35,10 +35,29 @@ export default function PortalSignup({ portalType }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const resolveDestination = (nextProfile) => {
+    if (!nextProfile) return portal.onboarding;
+    if (nextProfile.portalType && nextProfile.portalType !== portalType) return portal.login;
+
+    const hasPortalData = portalType === 'municipality'
+      ? Boolean(
+          nextProfile.municipalityProfile?.organizationName ||
+          nextProfile.municipalityProfile?.department ||
+          nextProfile.municipalityProfile?.city
+        )
+      : Boolean(
+          nextProfile.citizenProfile?.state ||
+          nextProfile.citizenProfile?.city ||
+          nextProfile.citizenProfile?.locality
+        );
+
+    return nextProfile.isProfileComplete || hasPortalData ? (portalType === 'municipality' ? '/admin/dashboard' : '/dashboard') : portal.onboarding;
+  };
+
   useEffect(() => {
     if (!isSignedIn) return;
-    navigate(portal.onboarding);
-  }, [isSignedIn, profile, navigate, portal]);
+    navigate(resolveDestination(profile));
+  }, [isSignedIn, profile, navigate, portalType]);
 
   const submitRegister = async (event) => {
     event.preventDefault();
@@ -58,7 +77,7 @@ export default function PortalSignup({ portalType }) {
       return;
     }
 
-    navigate(portal.onboarding);
+    navigate(resolveDestination(result.profile ?? null));
   };
 
   const submitGoogle = async () => {
@@ -72,7 +91,7 @@ export default function PortalSignup({ portalType }) {
       return;
     }
 
-    navigate(portal.onboarding);
+    navigate(resolveDestination(result.profile ?? null));
   };
 
   const Icon = portal.icon;

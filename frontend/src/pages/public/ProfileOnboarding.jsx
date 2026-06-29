@@ -60,8 +60,19 @@ export default function ProfileOnboarding({ portalType }) {
 
   useEffect(() => {
     if (!isSignedIn || profileLoading) return;
+    const hasPortalData = portalType === 'municipality'
+      ? Boolean(
+          profile?.municipalityProfile?.organizationName ||
+          profile?.municipalityProfile?.department ||
+          profile?.municipalityProfile?.city
+        )
+      : Boolean(
+          profile?.citizenProfile?.state ||
+          profile?.citizenProfile?.city ||
+          profile?.citizenProfile?.locality
+        );
 
-    if (profile?.portalType === portalType && profile?.isProfileComplete) {
+    if (profile?.portalType === portalType && (profile?.isProfileComplete || hasPortalData)) {
       navigate(meta.dashboard);
     }
   }, [isSignedIn, profileLoading, profile, portalType, meta, navigate]);

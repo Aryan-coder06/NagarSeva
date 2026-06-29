@@ -1,29 +1,21 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Building2, CheckCircle2, Clock3, MapPinned, Shield, Sparkles, ThumbsUp, UserRound, Zap } from 'lucide-react';
+import { ArrowRight, Bot, Building2, Clock3, MapPinned, PlayCircle, Shield, Sparkles, ThumbsUp, UserRound, Waves } from 'lucide-react';
 import { demoIssues, getStatusConfig } from '../../data/demoIssues';
 import heroPothole from '../../assets/hero_pothole.jpg';
+import AnimatedCounter from '../../components/dashboard/AnimatedCounter';
 
 const stats = [
-  { label: 'Reports triaged', value: '12.8k', icon: Sparkles },
-  { label: 'Community checks', value: '41k', icon: ThumbsUp },
-  { label: 'Avg. response cut', value: '37%', icon: Clock3 },
-  { label: 'Hotspots mapped', value: '286', icon: MapPinned },
+  { label: 'Reports triaged', value: 128, icon: Sparkles, suffix: '' },
+  { label: 'Community checks', value: 412, icon: ThumbsUp, suffix: '' },
+  { label: 'Response cut', value: 37, icon: Clock3, suffix: '%' },
+  { label: 'Hotspots mapped', value: 26, icon: MapPinned, suffix: '' },
 ];
 
-const features = [
-  {
-    title: 'Report Issues',
-    description: 'Upload evidence, attach GPS, and route the issue into an accountable local action queue.',
-  },
-  {
-    title: 'Track Progress',
-    description: 'Follow every issue from report to review to resolution with transparent status changes.',
-  },
-  {
-    title: 'Community Voting',
-    description: 'Validate what matters locally so high-impact problems get prioritized first.',
-  },
+const geminiFlowSignals = [
+  { label: 'AI triage chain', value: '6 stages', icon: Bot },
+  { label: 'Evidence path', value: 'video first', icon: PlayCircle },
+  { label: 'Citizen trust loop', value: 'live', icon: Waves },
 ];
 
 const portals = [
@@ -110,7 +102,10 @@ export default function Home() {
                   className="rounded-2xl border border-green-100 bg-green-50/50 p-4 dark:border-green-900/20 dark:bg-green-950/20"
                 >
                   <item.icon className="mb-3 h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  <p className="font-mono text-2xl font-bold text-zinc-950 dark:text-white">{item.value}</p>
+                  <p className="font-mono text-2xl font-bold text-zinc-950 dark:text-white">
+                    <AnimatedCounter value={item.value} />
+                    {item.suffix}
+                  </p>
                   <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{item.label}</p>
                 </motion.div>
               ))}
@@ -165,27 +160,99 @@ export default function Home() {
 
       <section className="mx-auto max-w-6xl px-6 py-16">
         <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-          className="grid gap-6 md:grid-cols-3"
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-[32px] border border-white/20 bg-white/70 p-5 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-slate-900/70 sm:p-8"
         >
-          {features.map((feature) => (
-            <motion.div
-              key={feature.title}
-              variants={fadeUp}
-              className="group bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-[28px] p-6 shadow-sm hover:-translate-y-2 hover:shadow-2xl transition-all duration-500"
-            >
-              <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-300 group-hover:scale-110 transition-transform duration-300">
-                {feature.title === 'Report Issues' && <Sparkles className="h-5 w-5" />}
-                {feature.title === 'Track Progress' && <CheckCircle2 className="h-5 w-5" />}
-                {feature.title === 'Community Voting' && <Zap className="h-5 w-5" />}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.14),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(6,182,212,0.12),transparent_24%)]" />
+
+          <div className="relative grid gap-8 xl:grid-cols-[0.9fr_1.1fr] xl:items-center">
+            <div>
+              <div className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700 dark:border-emerald-900/30 dark:bg-emerald-950/30 dark:text-emerald-300">
+                <Bot className="mr-2 h-4 w-4" />
+                GeminiFlow explanation
               </div>
-              <h3 className="font-heading text-lg font-bold text-zinc-950 dark:text-white">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{feature.description}</p>
-            </motion.div>
-          ))}
+              <h2 className="font-heading mt-4 text-3xl font-bold tracking-tight text-zinc-950 dark:text-white sm:text-4xl">
+                Watch how GeminiFlow turns one local report into municipal action.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm leading-7 text-zinc-600 dark:text-zinc-300 sm:text-base">
+                This explainer walks through NagarSeva&apos;s full AI operating loop: citizen evidence capture, Gemini triage, duplicate checks, trust context, routing, municipal briefs, and accountable follow-through.
+              </p>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                {geminiFlowSignals.map((signal, index) => (
+                  <motion.div
+                    key={signal.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.08, duration: 0.45 }}
+                    className="rounded-2xl border border-zinc-200 bg-white/80 p-4 dark:border-zinc-800 dark:bg-slate-950/60"
+                  >
+                    <signal.icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    <p className="mt-3 text-lg font-bold text-zinc-950 dark:text-white">{signal.value}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">{signal.label}</p>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                {['Citizen evidence', 'Gemini routing', 'Municipal brief', 'Community validation'].map((pill, index) => (
+                  <motion.span
+                    key={pill}
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ duration: 2.6 + index * 0.3, repeat: Infinity, ease: 'easeInOut' }}
+                    className="inline-flex rounded-full border border-emerald-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-zinc-700 shadow-sm dark:border-emerald-900/30 dark:bg-slate-950/70 dark:text-zinc-200"
+                  >
+                    {pill}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <motion.div
+                animate={{ y: [0, -8, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -left-3 top-6 z-10 hidden rounded-2xl border border-cyan-200 bg-white/85 px-4 py-3 shadow-xl backdrop-blur-xl dark:border-cyan-900/30 dark:bg-slate-950/80 md:block"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-cyan-600 dark:text-cyan-300">Live explain</p>
+                <p className="mt-1 text-sm font-bold text-zinc-950 dark:text-white">Report to resolution</p>
+              </motion.div>
+              <motion.div
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -right-2 bottom-8 z-10 hidden rounded-2xl border border-emerald-200 bg-white/85 px-4 py-3 shadow-xl backdrop-blur-xl dark:border-emerald-900/30 dark:bg-slate-950/80 md:block"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">Explainer mode</p>
+                <p className="mt-1 text-sm font-bold text-zinc-950 dark:text-white">GeminiFlow pipeline</p>
+              </motion.div>
+
+              <div className="overflow-hidden rounded-[30px] border border-zinc-200 bg-zinc-950 p-3 shadow-[0_30px_80px_rgba(15,23,42,0.22)] dark:border-zinc-800">
+                <div className="mb-3 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Explanation video</p>
+                    <p className="text-xs text-zinc-400">GeminiFlow in motion</p>
+                  </div>
+                  <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                    <PlayCircle className="mr-1.5 h-3.5 w-3.5" />
+                    MP4 explainer
+                  </div>
+                </div>
+                <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black">
+                  <video
+                    className="aspect-video w-full object-cover"
+                    src="/final_video.mp4"
+                    controls
+                    preload="metadata"
+                    playsInline
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       </section>
 

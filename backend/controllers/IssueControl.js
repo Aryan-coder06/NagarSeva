@@ -4,6 +4,13 @@ const UserProfile = require('../models/UserProfile');
 const analyzeImage = require('../utils/analyseImage');
 const getLocation = require('../utils/getLocation');
 const { logAction } = require('./logControl');
+const {
+    createNotificationForProfile,
+    createNotificationsForMunicipalScope,
+    buildIssueUrl,
+    maybeSendCitizenLevelUpgrade,
+} = require('../services/notifications');
+const { getCitizenStats } = require('../services/citizenTier');
 
 const CITY_ALIASES = {
     gurgaon: ['gurgaon', 'gurugram'],
@@ -214,6 +221,70 @@ const buildTimelineEntry = ({ status, note = '', actorId = 'system', actorType =
     createdAt: new Date(),
 });
 
+const notifyReporter = async ({
+    issue,
+    profile,
+    type,
+    title,
+    message,
+    ctaLabel = 'Open dashboard',
+    sendEmailOverride = null,
+}) => {
+    if (!profile?.firebaseUid) return;
+
+    await createNotificationForProfile({
+        profile,
+        type,
+        title,
+        message,
+        issue,
+        portalType: 'citizen',
+        ctaLabel,
+        ctaUrl: buildIssueUrl(issue?._id, 'citizen'),
+        sendEmailOverride,
+        email: {
+            subject: `NagarSeva update: ${issue?.title || title}`,
+            title,
+            message,
+            ctaLabel,
+            variant: type === 'issue_created'
+                ? 'issue_created'
+                : type === 'municipal_authenticity_decision'
+                    ? 'authenticity'
+                    : type === 'issue_status_changed' && issue?.status === 'resolved'
+                        ? 'issue_resolved'
+                        : type === 'issue_status_changed' && issue?.status === 'in progress'
+                            ? 'issue_fixing'
+                            : 'issue_status',
+        },
+        metadata: {
+            status: issue?.status,
+            category: issue?.category,
+        },
+    });
+};
+
+const notifyMunicipalScope = async ({
+    issue,
+    title,
+    message,
+}) => {
+    await createNotificationsForMunicipalScope({
+        city: issue?.city,
+        state: issue?.state,
+        category: issue?.category,
+        title,
+        message,
+        issue,
+        metadata: {
+            issueId: issue?._id,
+            category: issue?.category,
+            city: issue?.city,
+            state: issue?.state,
+        },
+    });
+};
+
 const calculateAuthenticityMetrics = (issue) => {
     const votes = Array.isArray(issue.authenticityVotes) ? issue.authenticityVotes : [];
 
@@ -327,7 +398,8 @@ const createIssue = async (req, res) => {
             return res.status(400).json({ error: 'Image or video is required' });
         }
         
-        const reporterProfile = await UserProfile.findOne({ firebaseUid: userId }, { fullName: 1, avatarUrl: 1 }).lean();
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: userId }).lean();
+        const previousStats = await getCitizenStats(userId);
         const reporterName = reporterProfile?.fullName || req.auth?.name || 'Citizen';
         const reporterAvatarUrl = reporterProfile?.avatarUrl || '';
         const isVideo = mediaType === 'video';
@@ -402,6 +474,24 @@ const createIssue = async (req, res) => {
             severity: 'info',
             req
         });
+
+        await notifyReporter({
+            issue: newIssue,
+            profile: reporterProfile,
+            type: 'issue_created',
+            title: 'Issue submitted successfully',
+            message: `Your report "${newIssue.title}" has been submitted for community verification and municipal triage.`,
+            ctaLabel: 'Track report',
+            sendEmailOverride: reporterProfile?.notificationPreferences?.issueCreated !== false,
+        });
+
+        await notifyMunicipalScope({
+            issue: newIssue,
+            title: 'New issue routed into your scope',
+            message: `${newIssue.category || 'Civic issue'} reported in ${[newIssue.city, newIssue.state].filter(Boolean).join(', ')} now needs municipal review.`,
+        });
+
+        await maybeSendCitizenLevelUpgrade(userId, previousStats.level.id);
 
         res.status(201).json(newIssue);
     } catch (error) {
@@ -515,6 +605,7 @@ const updateIssueStatus = async (req, res) => {
         }
         
         const previousStatus = issue.status;
+        const previousStats = issue.userId ? await getCitizenStats(issue.userId) : null;
         issue.status = status;
         issue.priorityScore = computePriorityScore(issue, issue.votes, issue.duplicateClusterSize, issue.createdAt);
         issue.statusTimeline = [
@@ -538,6 +629,24 @@ const updateIssueStatus = async (req, res) => {
             severity: status === 'resolved' ? 'info' : 'warning',
             req
         });
+
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: issue.userId }).lean();
+        await notifyReporter({
+            issue,
+            profile: reporterProfile,
+            type: 'issue_status_changed',
+            title: status === 'resolved' ? 'Issue resolved' : status === 'in progress' ? 'Municipality is fixing your issue' : 'Issue status updated',
+            message: status === 'resolved'
+                ? `Good news. "${issue.title}" has been marked resolved by the municipality.`
+                : status === 'in progress'
+                    ? `Field action has started on "${issue.title}". The municipality is currently working on this case.`
+                    : `Your report "${issue.title}" moved from ${previousStatus} to ${status}.`,
+            ctaLabel: status === 'resolved' ? 'View resolved issue' : status === 'in progress' ? 'Track field progress' : 'Track status',
+            sendEmailOverride: reporterProfile?.notificationPreferences?.statusChanged !== false,
+        });
+        if (previousStats) {
+            await maybeSendCitizenLevelUpgrade(issue.userId, previousStats.level.id);
+        }
 
         res.status(200).json(issue);
 
@@ -594,6 +703,17 @@ const assignIssue = async (req, res) => {
             req,
         });
 
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: issue.userId }).lean();
+        await notifyReporter({
+            issue,
+            profile: reporterProfile,
+            type: 'issue_assigned',
+            title: 'Municipal team assigned',
+            message: `${officer.fullName} has been assigned to "${issue.title}"${dueAt ? ` with a due date of ${new Date(dueAt).toLocaleDateString('en-IN')}` : ''}.`,
+            ctaLabel: 'View assignment',
+            sendEmailOverride: reporterProfile?.notificationPreferences?.assignmentAlerts !== false,
+        });
+
         res.status(200).json(issue);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -609,6 +729,7 @@ const escalateIssue = async (req, res) => {
             return res.status(404).json({ error: 'Issue not found' });
         }
 
+        const previousStats = issue.userId ? await getCitizenStats(issue.userId) : null;
         issue.escalationLevel = Number(issue.escalationLevel || 0) + 1;
         issue.priorityScore = Math.min(100, Number(issue.priorityScore || 0) + 10);
         issue.statusTimeline = [
@@ -632,6 +753,20 @@ const escalateIssue = async (req, res) => {
             severity: 'warning',
             req,
         });
+
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: issue.userId }).lean();
+        await notifyReporter({
+            issue,
+            profile: reporterProfile,
+            type: 'issue_escalated',
+            title: 'Issue escalated for faster action',
+            message: `"${issue.title}" has been escalated to level ${issue.escalationLevel} for higher-priority handling.`,
+            ctaLabel: 'Track escalation',
+            sendEmailOverride: reporterProfile?.notificationPreferences?.statusChanged !== false,
+        });
+        if (previousStats) {
+            await maybeSendCitizenLevelUpgrade(issue.userId, previousStats.level.id);
+        }
 
         res.status(200).json(issue);
     } catch (error) {
@@ -696,6 +831,7 @@ const voteIssue = async (req, res) => {
             return res.status(404).json({ error: 'Issue not found' });
         }
 
+        const previousStats = issue.userId ? await getCitizenStats(issue.userId) : null;
         const validVoteTypes = ['confirm', 'false', 'duplicate'];
         if (!validVoteTypes.includes(voteType)) {
             return res.status(400).json({ error: 'Invalid vote type' });
@@ -756,6 +892,22 @@ const voteIssue = async (req, res) => {
             req
         });
 
+        if (issue.userId && issue.userId !== userId) {
+            const reporterProfile = await UserProfile.findOne({ firebaseUid: issue.userId }).lean();
+            await notifyReporter({
+                issue,
+                profile: reporterProfile,
+                type: 'community_verification',
+                title: 'Community verification updated',
+                message: `Your report "${issue.title}" received a ${voteType} signal. Trust score is now ${metrics.trustScore}.`,
+                ctaLabel: 'View verification',
+                sendEmailOverride: false,
+            });
+            if (previousStats) {
+                await maybeSendCitizenLevelUpgrade(issue.userId, previousStats.level.id);
+            }
+        }
+
         res.status(200).json(issue);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -807,6 +959,23 @@ const decideIssueAuthenticity = async (req, res) => {
             details: `Issue marked ${decision} by municipality (trust: ${metrics.trustScore})`,
             severity: decision === 'approved' ? 'info' : 'warning',
             req,
+        });
+
+        const reporterProfile = await UserProfile.findOne({ firebaseUid: issue.userId }).lean();
+        const decisionMessage = decision === 'approved'
+            ? `Municipality approved "${issue.title}" and kept it in the action pipeline.`
+            : decision === 'duplicate'
+                ? `Municipality marked "${issue.title}" as a duplicate report.`
+                : `Municipality rejected "${issue.title}" after authenticity review.`;
+
+        await notifyReporter({
+            issue,
+            profile: reporterProfile,
+            type: 'municipal_authenticity_decision',
+            title: 'Municipal authenticity decision recorded',
+            message: issue.decisionNote ? `${decisionMessage} Note: ${issue.decisionNote}` : decisionMessage,
+            ctaLabel: 'Review decision',
+            sendEmailOverride: reporterProfile?.notificationPreferences?.authenticityAlerts !== false,
         });
 
         res.status(200).json(issue);
