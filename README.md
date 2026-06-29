@@ -21,7 +21,6 @@
 ## 🔴 Live Deployment
 
 - **Frontend**: https://vibe2ship-11096.web.app
-- **Backend API**: https://hackathon-app-603134563192.asia-south1.run.app
 - **Repository**: https://github.com/Aryan-coder06/NagarSeva
 
 ---
